@@ -33,12 +33,12 @@ const AppManager = (): ReactElement => {
 	};
 
 	return (
-		<div className="manager-container">
-			<div className="left">
-
+		<div className="manager-container flex flex-row w-full gap-4">
+			<div className="left w-full min-h-[70vh]">
+				<TransferGenerator data={fileData} />
 			</div>
-			<div className="right flex flex-col gap-4">
-				<div className="top-container flex flex-row justify-between items-center w-full bg-slate-800 p-4 rounded-2xl">
+			<div className="right flex flex-col gap-4 w-full">
+				<div className="top-container flex flex-row justify-between items-center bg-slate-800 p-4 rounded-2xl">
 					<div className="input-container">
 						<input type="file" accept='.xlsx, .xls' onChange={handleFileUpload} />
 					</div>
@@ -48,8 +48,7 @@ const AppManager = (): ReactElement => {
 						)}
 					</div>
 				</div>
-				<XlsxTableParser data={fileData} isCompact={isCompact} />
-				<TransferGenerator data={fileData} />
+				<XlsxTableParser data={fileData} isCompact={isCompact} key={isCompact.toString()} />
 			</div>
 		</div>
 	);

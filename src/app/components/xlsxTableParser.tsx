@@ -1,5 +1,5 @@
 'use client';
-import { useState, ReactElement } from 'react';
+import React, { useEffect, useState, ReactElement } from 'react';
 
 
 interface InputData {
@@ -13,12 +13,17 @@ interface XlsxTableParserProps {
 
 
 const XlsxTableParser = ({ data, isCompact = false }: XlsxTableParserProps): ReactElement => {
+	const [compactState, setCompactState] = useState(isCompact);
+
+	useEffect(() => {
+		setCompactState(isCompact);
+	}, [isCompact]);
 
 	return (
-		<div className="flex flex-col parser-container min-w-[60vw] max-w-[60vw] gap-4">
+		<div className="flex flex-col parser-container gap-4">
 			{data.length > 0 && (
 				<div className="rounded-2xl p-4 bg-slate-800">
-					<div className="rounded-lg text-black max-h-[60vh] overflow-y-scroll">
+					<div className="rounded-lg text-black max-h-[70vh] overflow-y-scroll">
 						<table className="min-w-full divide-y divide-gray-200">
 							<thead className="bg-slate-700">
 								<tr className='divide-x divide-slate-600'>
@@ -31,7 +36,7 @@ const XlsxTableParser = ({ data, isCompact = false }: XlsxTableParserProps): Rea
 								{data.map((row: InputData, index) => (
 									<tr key={index} className='even:bg-slate-200 divide-x divide-slate-300'>
 										{Object.keys(data[0]).map((key, index) => (
-											<td key={index} className={`py-${isCompact ? 1 : 2} px-4 whitespace-nowrap`}>{row[key] || ''}</td>
+											<td key={index} className={`${compactState ? 'py-[0.1rem]' : 'py-2'} px-4 whitespace-nowrap`}>{row[key] || ''}</td>
 										))}
 									</tr>
 								))}
@@ -44,4 +49,6 @@ const XlsxTableParser = ({ data, isCompact = false }: XlsxTableParserProps): Rea
 	);
 };
 
-export default XlsxTableParser;
+export default React.memo(XlsxTableParser, (prevProps, nextProps) => {
+	return prevProps.data === nextProps.data && prevProps.isCompact === nextProps.isCompact;
+});
