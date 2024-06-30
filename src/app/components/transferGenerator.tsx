@@ -1,114 +1,130 @@
-'use client';
-import { Document, Page, View, Text, StyleSheet, Font } from '@react-pdf/renderer';
-import { useState, useEffect } from 'react';
-import dynamic from "next/dynamic";
-/* import * as opentype from 'opentype.js'; */
+import React, { useState, useRef, useEffect } from 'react';
+import opentype, { Path } from 'opentype.js';
 
-const PDFViewer = dynamic(() => import('@react-pdf/renderer').then((mod) => mod.PDFViewer),
-	{ ssr: false }
-);
+const TransferGenerator: React.FC = () => {
+	const [text, setText] = useState('AaBbDdOoPpQqR');
+	const [font, setFont] = useState<'PUMA' | 'ADIDAS'>('ADIDAS');
+	const [fontSize, setFontSize] = useState<number>(48);
+	const [counterColor, setCounterColor] = useState<string>('#0000ff');
+	const [glyphColor, setGlyphColor] = useState<string>('#ff0000');
+	const svgRef = useRef<HTMLDivElement>(null);
 
-interface InputData {
-	[key: string]: string | number;
-}
+	const svgns = "http://www.w3.org/2000/svg";
 
-interface transferProps {
-	data: InputData[];
-}
+	const colorTextInput = async (strokeWidth: string = '0.0002'): Promise<SVGSVGElement> => {
+		const svg = document.createElementNS(svgns, "svg");
+		svg.setAttribute("width", "500");
+		svg.setAttribute("height", "300");
 
-const TransferGenerator = ({ data }: transferProps) => {
-	const [pageSizes, setPageSizes] = useState<number[]>([]);
+		try { // Attempt to load font
+			const loadedFont = await opentype.load(font == 'ADIDAS' ? `fonts/Roboto-Regular.ttf` : 'fonts/lemon.ttf');
+			const path = loadedFont.getPath(text, 10, 50, fontSize);
 
-	useEffect(() => {
-		// Function to measure text width
-		const measureText = (text: string, fontSize: number) => {
-			const canvas = document.createElement('canvas');
-			const context = canvas.getContext('2d');
-			if (context) {
-				context.font = `${fontSize}px Arial`; // Adjust font as needed
-				return context.measureText(text).width;
+			let currentPath = new Path();
+			let pathStart: [number, number] | null = null;
+
+			// Drawing Paths depending on type of operation
+			path.commands.forEach((cmd) => {
+				if (cmd.type === 'M') {
+					if (currentPath.commands.length > 0) {
+						addPathToSVG(svg, currentPath, pathStart!, strokeWidth);
+						currentPath = new Path();
+					}
+					currentPath.moveTo(cmd.x, cmd.y);
+					pathStart = [cmd.x, cmd.y];
+				} else if (cmd.type === 'L') {
+					currentPath.lineTo(cmd.x, cmd.y);
+				} else if (cmd.type === 'C') {
+					currentPath.curveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
+				} else if (cmd.type === 'Q') {
+					currentPath.quadraticCurveTo(cmd.x1, cmd.y1, cmd.x, cmd.y);
+				} else if (cmd.type === 'Z') {
+					currentPath.closePath();
+					addPathToSVG(svg, currentPath, pathStart!, strokeWidth);
+					currentPath = new Path();
+					pathStart = null;
+				}
+			});
+
+			if (currentPath.commands.length > 0 && pathStart) {
+				addPathToSVG(svg, currentPath, pathStart, strokeWidth);
 			}
-			return 0;
-		};
 
-		// Calculate page sizes
-		const sizes = data.map((rowData) => {
-			const {
-				"Asset Name": playerName,
-				"Team Name": clubName,
-				"ID LEFT INSIDE": idLeftInside,
-				"ID LEFT OUTSIDE": idLeftOutside,
-				"ID RIGHT INSIDE": idRightInside,
-				"ID RIGHT OUTSIDE": idRightOutside
-			}: any = rowData;
+		} catch (error) {
+			console.error("Error loading font:", error);
+		}
 
-			const text = `${playerName} / ${clubName}`;
-			const idText = `${idLeftInside || ''} ${idLeftOutside || ''} ${idRightInside || ''} ${idRightOutside || ''}`;
-
-			const textWidth = measureText(text, 19.85);
-			const idWidth = measureText(idText, 19.85);
-
-			return Math.max(textWidth, idWidth) * 1.2 * (72 / 96) + 150;
-		});
-
-		setPageSizes(sizes);
-	}, [data]);
-
-	const renderTransfer = (rowData: InputData, index: number) => {
-		const {
-			"Asset Name": playerName,
-			"Team Name": clubName,
-			"ID LEFT INSIDE": idLeftInside,
-			"ID LEFT OUTSIDE": idLeftOutside,
-			"ID RIGHT INSIDE": idRightInside,
-			"ID RIGHT OUTSIDE": idRightOutside
-		}: any = rowData;
-
-		const styles = StyleSheet.create({
-			text: {
-				'color': 'red',
-				'fontSize': '7mm',
-				'fontFamily': 'Helvetica'
-			}
-		});
-
-		return (
-			<Page size={[pageSizes[index] + 10]} wrap={false} key={index} style={{ 'display': 'flex', 'flexDirection': 'row', 'border': '0.01mm solid rgb(0, 255, 0)' }}>
-
-				<View style={{ 'display': 'flex', 'flexDirection': 'column', 'gap': "3.5mm", 'margin': '2mm', 'width': '100%' }}>
-					{/** Player Name / Club */}
-					<Text style={styles.text} >{`${playerName} / ${clubName}`}</Text>
-					{/** IDs */}
-					<View style={{ 'display': 'flex', 'alignItems': 'center', 'gap': "3.5mm", }}>
-						<Text style={styles.text} >
-							{`${idLeftInside ? idLeftInside : ''} ${idLeftOutside ? idLeftOutside : ''} ${idRightInside ? idRightInside : ''} ${idRightOutside ? idRightOutside : ''}`}
-						</Text>
-						<Text style={styles.text} >
-							{`${idLeftInside ? idLeftInside : ''} ${idLeftOutside ? idLeftOutside : ''} ${idRightInside ? idRightInside : ''} ${idRightOutside ? idRightOutside : ''}`}
-						</Text>
-						<Text style={styles.text} >
-							{`${idLeftInside ? idLeftInside : ''} ${idLeftOutside ? idLeftOutside : ''} ${idRightInside ? idRightInside : ''} ${idRightOutside ? idRightOutside : ''}`}
-						</Text>
-						<Text style={styles.text} >
-							{`${idLeftInside ? idLeftInside : ''} ${idLeftOutside ? idLeftOutside : ''} ${idRightInside ? idRightInside : ''} ${idRightOutside ? idRightOutside : ''}`}
-						</Text>
-					</View>
-				</View>
-
-			</Page>
-		);
+		return svg;
 	};
 
+	function addPathToSVG(svg: SVGSVGElement, path: Path, start: [number, number], strokeWidth: string) {
+		const pathElement = document.createElementNS(svgns, "path");
+		pathElement.setAttribute("d", path.toPathData(2));
+		pathElement.setAttribute("fill", "none");
+
+		// Determine if the path is clockwise (inner) or counter-clockwise (outer)
+		const isClockwise = isClockwisePath(path, start);
+
+		// Change outline color based on path rotation
+		pathElement.setAttribute("stroke", isClockwise ? counterColor : glyphColor);
+		pathElement.setAttribute("stroke-width", strokeWidth);
+		svg.appendChild(pathElement);
+	}
+
+	function isClockwisePath(path: Path, start: [number, number]): boolean {
+		let sum = 0;
+		let prev = start;
+		path.commands.forEach(cmd => {
+			if ('x' in cmd && 'y' in cmd) {
+				sum += (cmd.x - prev[0]) * (cmd.y + prev[1]);
+				prev = [cmd.x, cmd.y];
+			}
+		});
+		// Close the path
+		sum += (start[0] - prev[0]) * (start[1] + prev[1]);
+		return sum > 0;
+	}
+
+	const handleDownload = async () => {
+		const svg = await colorTextInput();
+		const serializer = new XMLSerializer();
+		const svgString = serializer.serializeToString(svg);
+		const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+		const svgUrl = URL.createObjectURL(svgBlob);
+		const downloadLink = document.createElement("a");
+		downloadLink.href = svgUrl;
+		downloadLink.download = `${font}.svg`;
+		document.body.appendChild(downloadLink);
+		downloadLink.click();
+		document.body.removeChild(downloadLink);
+	};
+
+	// Update preview depending when params change
+	useEffect(() => {
+		const updateSVG = async () => {
+			const svg = await colorTextInput('1'); // 1 is so the text is actually visible, if the default value were used for preview it would be too thin to show up
+			if (svgRef.current) {
+				svgRef.current.innerHTML = ''; // Prevent recursion by resetting the children
+				svgRef.current.appendChild(svg);
+			}
+		};
+		updateSVG();
+	}, [text, font, fontSize, counterColor, glyphColor]);
+
 	return (
-		<div className="transfer-container flex flex-col min-w-[30vw] w-full h-full">
-			<PDFViewer showToolbar={true} height="100%" width="100%">
-				<Document>
-					{data.map((rowData, index) => renderTransfer(rowData, index))}
-				</Document>
-			</PDFViewer>
+		<div className="p-4 rounded-2xl text-black bg-slate-800">
+			<div className="mb-4">
+				<input type="text" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter text" className="border p-2 mr-2" />
+				<input type="button" value='ADIDAS' onClick={(e) => setFont('ADIDAS')} className={`p-2 mr-2 ${font == 'ADIDAS' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
+				<input type="button" value='PUMA' onClick={(e) => setFont('PUMA')} className={`p-2 mr-2 ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
+				<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="border p-2 mr-2" />
+				<input type="color" value={glyphColor} onChange={(e) => setGlyphColor(e.target.value)} className="mr-2" />
+				<input type="color" value={counterColor} onChange={(e) => setCounterColor(e.target.value)} className="mr-2" />
+			</div>
+			<div ref={svgRef} className="mb-4 bg-white"></div>
+			<button onClick={handleDownload} className="px-4 py-2 bg-slate-600 text-white rounded">Download SVG</button>
 		</div>
 	);
 };
-
 
 export default TransferGenerator;
