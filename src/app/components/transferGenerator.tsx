@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import opentype, { Path } from 'opentype.js';
 
 const TransferGenerator: React.FC = () => {
 	const [text, setText] = useState('AaBbDdOoPpQqR');
-	const [font, setFont] = useState<'PUMA' | 'ADIDAS'>('ADIDAS');
+	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
 	const [fontSize, setFontSize] = useState<number>(48);
 	const [counterColor, setCounterColor] = useState<string>('#0000ff');
 	const [glyphColor, setGlyphColor] = useState<string>('#ff0000');
@@ -11,13 +11,27 @@ const TransferGenerator: React.FC = () => {
 
 	const svgns = "http://www.w3.org/2000/svg";
 
-	const colorTextInput = async (strokeWidth: string = '0.0002'): Promise<SVGSVGElement> => {
+	const addPathToSVG = useCallback((svg: SVGSVGElement, path: Path, start: [number, number], strokeWidth: string) => {
+		const pathElement = document.createElementNS(svgns, "path");
+		pathElement.setAttribute("d", path.toPathData(2));
+		pathElement.setAttribute("fill", "none");
+
+		// Color differently if the path is clockwise (inner) or counter-clockwise (outer) 
+		const isClockwise = isClockwisePath(path, start);
+
+		// Change outline color based on path rotation and font
+		pathElement.setAttribute("stroke", isClockwise ? counterColor : glyphColor);
+		pathElement.setAttribute("stroke-width", strokeWidth);
+		svg.appendChild(pathElement);
+	}, [counterColor, glyphColor])
+
+	const colorTextInput = useCallback(async (strokeWidth: string = '0.0002'): Promise<SVGSVGElement> => {
 		const svg = document.createElementNS(svgns, "svg");
-		svg.setAttribute("width", "500");
-		svg.setAttribute("height", "300");
+		svg.setAttribute("width", "150mm");
+		svg.setAttribute("height", "30mm");
 
 		try { // Attempt to load font
-			const loadedFont = await opentype.load(font == 'ADIDAS' ? `fonts/Roboto-Regular.ttf` : 'fonts/lemon.ttf');
+			const loadedFont = await opentype.load(font == 'NIKE' ? `fonts/nike.ttf` : 'fonts/puma.ttf');
 			const path = loadedFont.getPath(text, 10, 50, fontSize);
 
 			let currentPath = new Path();
@@ -55,21 +69,7 @@ const TransferGenerator: React.FC = () => {
 		}
 
 		return svg;
-	};
-
-	function addPathToSVG(svg: SVGSVGElement, path: Path, start: [number, number], strokeWidth: string) {
-		const pathElement = document.createElementNS(svgns, "path");
-		pathElement.setAttribute("d", path.toPathData(2));
-		pathElement.setAttribute("fill", "none");
-
-		// Determine if the path is clockwise (inner) or counter-clockwise (outer)
-		const isClockwise = isClockwisePath(path, start);
-
-		// Change outline color based on path rotation
-		pathElement.setAttribute("stroke", isClockwise ? counterColor : glyphColor);
-		pathElement.setAttribute("stroke-width", strokeWidth);
-		svg.appendChild(pathElement);
-	}
+	}, [addPathToSVG, font, fontSize, text]);
 
 	function isClockwisePath(path: Path, start: [number, number]): boolean {
 		let sum = 0;
@@ -109,13 +109,13 @@ const TransferGenerator: React.FC = () => {
 			}
 		};
 		updateSVG();
-	}, [text, font, fontSize, counterColor, glyphColor]);
+	}, [text, font, fontSize, counterColor, glyphColor, colorTextInput]);
 
 	return (
 		<div className="p-4 rounded-2xl text-black bg-slate-800">
 			<div className="mb-4">
 				<input type="text" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter text" className="border p-2 mr-2" />
-				<input type="button" value='ADIDAS' onClick={(e) => setFont('ADIDAS')} className={`p-2 mr-2 ${font == 'ADIDAS' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
+				<input type="button" value='NIKE' onClick={(e) => setFont('NIKE')} className={`p-2 mr-2 ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
 				<input type="button" value='PUMA' onClick={(e) => setFont('PUMA')} className={`p-2 mr-2 ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
 				<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="border p-2 mr-2" />
 				<input type="color" value={glyphColor} onChange={(e) => setGlyphColor(e.target.value)} className="mr-2" />
