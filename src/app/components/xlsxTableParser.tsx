@@ -12,7 +12,7 @@ interface XlsxTableParserProps {
 }
 
 
-const XlsxTableParser = ({ data, isCompact = false }: XlsxTableParserProps): ReactElement => {
+const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = false }) => {
 	const [compactState, setCompactState] = useState(isCompact);
 
 	useEffect(() => {

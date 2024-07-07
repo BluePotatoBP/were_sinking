@@ -35,7 +35,7 @@ const AppManager = (): ReactElement => {
 	return (
 		<div className="manager-container flex flex-row w-full gap-4">
 			<div className="left w-full min-h-[70vh]">
-				<TransferGenerator /> {/* data={fileData}  */}
+				<TransferGenerator data={fileData} />
 			</div>
 			<div className="right flex flex-col gap-4 w-full">
 				<div className="top-container flex flex-row justify-between items-center bg-slate-800 p-4 rounded-2xl">
