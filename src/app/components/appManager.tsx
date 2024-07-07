@@ -1,20 +1,25 @@
 'use client';
 import XlsxTableParser from "@/app/components/xlsxTableParser";
-import TransferGenerator from "@/app/components/transferGenerator";
+import TransferEditor from "@/app/components/transferEditor";
 
-import { ChangeEvent, ReactElement, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { WorkBook, WorkSheet, read, utils } from "xlsx";
 import { MdFormatLineSpacing } from "react-icons/md";
+import { TbLayoutSidebarLeftExpandFilled, TbLayoutSidebarRightExpandFilled } from "react-icons/tb";
 
 interface InputData {
 	[key: string]: string | number;
 }
 
-const AppManager = (): ReactElement => {
+const AppManager: React.FC = () => {
 
 	const [isCompact, setIsCompact] = useState<boolean>(false);
-	const [fileData, setFileData] = useState<InputData[]>([]);;
+	const [isExpanded, setIsExpanded] = useState<boolean>(true);
+	const [fileData, setFileData] = useState<InputData[]>([]);
+
 	const handleCompactClick = () => setIsCompact(!isCompact);
+
+	const handleExpand = () => setIsExpanded(!isExpanded);
 
 	const handleFileUpload = (input: ChangeEvent<HTMLInputElement>) => {
 		const reader = new FileReader();
@@ -35,7 +40,7 @@ const AppManager = (): ReactElement => {
 	return (
 		<div className="manager-container flex flex-row w-full gap-4">
 			<div className="left w-full min-h-[70vh]">
-				<TransferGenerator data={fileData} />
+				<TransferEditor data={fileData} />
 			</div>
 			<div className="right flex flex-col gap-4 w-full">
 				<div className="top-container flex flex-row justify-between items-center bg-slate-800 p-4 rounded-2xl">
@@ -44,11 +49,14 @@ const AppManager = (): ReactElement => {
 					</div>
 					<div className="controls-container p-0 m-0 leading-none">
 						{fileData.length > 0 && (
-							<button onClick={handleCompactClick}><MdFormatLineSpacing /></button>
+							<div className="table-controls flex gap-4">
+								<button onClick={handleCompactClick}><MdFormatLineSpacing className="text-white text-2xl" /></button>
+								<button onClick={handleExpand} className="text-white text-2xl">{isExpanded ? <TbLayoutSidebarLeftExpandFilled /> : <TbLayoutSidebarRightExpandFilled />}</button>
+							</div>
 						)}
 					</div>
 				</div>
-				<XlsxTableParser data={fileData} isCompact={isCompact} key={isCompact.toString()} />
+				<XlsxTableParser data={fileData} isCompact={isCompact} isExpanded={isExpanded} key={isCompact.toString()} />
 			</div>
 		</div>
 	);
