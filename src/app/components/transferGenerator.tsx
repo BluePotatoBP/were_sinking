@@ -1,25 +1,39 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import opentype, { Path } from 'opentype.js';
+import opentype, { Path } from "opentype.js";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface InputData {
 	[key: string]: string | number;
 }
 
 interface TransferGeneratorProps {
-	data: InputData[];
+	data: InputData;
 }
 
 const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
-	const [text, setText] = useState('ID ID ID ID');
-	const [identifierText, setIdentifierText] = useState('Name - Club');
+	const {
+		"Asset Name": assetName,
+		"Team Name": teamName,
+		"ID LEFT INSIDE": idLeftInside,
+		"ID RIGHT INSIDE": idRightInside,
+		"ID LEFT OUTSIDE": idLeftOutside,
+		"ID RIGHT OUTSIDE": idRightOutside,
+	} = data;
+
+	const string = idLeftInside?.toString() + idRightInside?.toString() + idLeftOutside?.toString() + idRightOutside?.toString();
+
+	const [text, setText] = useState(string);
+	const [identifierText, setIdentifierText] = useState(`${assetName} - ${teamName}`);
 	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
 	const [fontSize, setFontSize] = useState<number>(26);
 	const [counterColor, setCounterColor] = useState<string>('#0000ff');
 	const [glyphColor, setGlyphColor] = useState<string>('#ff0000');
 	const [perforationColor, setPerforationColor] = useState<string>('#00ff00');
-	const svgRef = useRef<HTMLDivElement>(null);
-	const [exactSizeSvg, setExactSizeSvg] = useState<SVGSVGElement | null>(null);
 
+	const [svgWidth, setSvgWidth] = useState<string>();
+	const [svgHeight, setSvgHeight] = useState<string>();
+	const [viewBoxString, setViewBoxString] = useState<string>();
+
+	const svgRef = useRef<SVGSVGElement>(null);
 	const svgns = "http://www.w3.org/2000/svg";
 
 	const addPathToSVG = useCallback((svg: SVGElement, path: Path, start: [number, number], strokeWidth: string = '0.0002', colorCounters: boolean = true) => {
@@ -81,8 +95,8 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
 	}, [addPathToSVG, font, fontSize, text]);
 
 	const createSVG = useCallback(async (forDownload: boolean = false): Promise<SVGSVGElement> => {
-		const svg = document.createElementNS(svgns, "svg") as SVGSVGElement;
-		const strokeWidth = forDownload ? '0.0002' : '0.5';
+		const svg = document.createElementNS(svgns, "g") as SVGSVGElement;
+		const strokeWidth = forDownload ? '0.0002' : '1';
 		const verticalSpacing = fontSize * 1.5;
 		const allPaths: Path[] = [];
 
@@ -121,86 +135,62 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
 		const width = (maxX - minX).toFixed(2);
 		const height = (maxY - minY).toFixed(2);
 
-		// Set the viewBox to include the entire content
-		svg.setAttribute("viewBox", `${minX.toFixed(2)} ${minY.toFixed(2)} ${width} ${height}`);
+		// Update SVG size
+		if (forDownload) {
+			setSvgWidth(width);
+			setSvgHeight(height);
+		} else { // For preview- makes all transfers consistent widths
+			setSvgWidth(width);
+			setSvgHeight("100%");
+		}
 
-		// Add the green rectangle for perforation
+		// Set the viewBox to include the entire content
+		setViewBoxString(`${minX.toFixed(2)} ${minY.toFixed(2)} ${width} ${height}`);
+
+		// Add rectangle for perforation
 		const rect = document.createElementNS(svgns, "rect");
 		rect.setAttribute("x", minX.toFixed(2));
 		rect.setAttribute("y", minY.toFixed(2));
 		rect.setAttribute("width", width);
 		rect.setAttribute("height", height);
 		rect.setAttribute("fill", "none");
-		rect.setAttribute("stroke", "rgb(0, 255, 0)");
+		rect.setAttribute("stroke", perforationColor);
 		rect.setAttribute("stroke-width", strokeWidth);
 
 		// Insert the rectangle before the first child
 		svg.insertBefore(rect, svg.firstChild);
 
-		// Update SVG size
-		svg.setAttribute("width", width);
-		svg.setAttribute("height", height);
-
 		return svg;
-	}, [createTextGroup, fontSize]);
+	}, [createTextGroup, fontSize, perforationColor, counterColor, glyphColor,]);
 
-	const handleDownload = () => {
-		if (exactSizeSvg) {
-			const serializer = new XMLSerializer();
-			const svgString = serializer.serializeToString(exactSizeSvg);
-			const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-			const svgUrl = URL.createObjectURL(svgBlob);
-			const downloadLink = document.createElement("a");
-			downloadLink.href = svgUrl;
-			downloadLink.download = `${font}.svg`;
-			document.body.appendChild(downloadLink);
-			downloadLink.click();
-			document.body.removeChild(downloadLink);
-		}
+	const isClockwisePath = (path: Path, start: [number, number]): boolean => {
+		let sum = 0;
+		let prev = start;
+		path.commands.forEach(cmd => {
+			if ('x' in cmd && 'y' in cmd) {
+				sum += (cmd.x - prev[0]) * (cmd.y + prev[1]);
+				prev = [cmd.x, cmd.y];
+			}
+		});
+		sum += (start[0] - prev[0]) * (start[1] + prev[1]);
+		return sum > 0;
 	};
 
 	useEffect(() => {
-		const updateSVG = async () => {
-			const previewSvg = await createSVG();
+		const updateSvg = async () => {
 			if (svgRef.current) {
+				const svg = await createSVG(false);
 				svgRef.current.innerHTML = '';
-				svgRef.current.appendChild(previewSvg);
+				svgRef.current.appendChild(svg);
 			}
-
-			const downloadSvg = await createSVG(true);
-			setExactSizeSvg(downloadSvg);
 		};
-		updateSVG();
-	}, [text, font, fontSize, counterColor, glyphColor, perforationColor, createSVG]);
+
+		updateSvg();
+	}, [data]);
 
 	return (
-		<div className="p-4 flex flex-col rounded-2xl text-black bg-slate-800 gap-4">
-			<div className="flex flex-row items-center">
-				<input type="text" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter text" className="border p-2 mr-2" />
-				<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 mr-2 ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
-				<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 mr-2 ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
-				<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="border p-2 mr-2" />
-				<input type="color" value={glyphColor} onChange={(e) => setGlyphColor(e.target.value)} className="mr-2" />
-				<input type="color" value={counterColor} onChange={(e) => setCounterColor(e.target.value)} className="mr-2" />
-				<input type="color" value={perforationColor} onChange={(e) => setPerforationColor(e.target.value)} className="mr-2" />
-			</div>
-			<div ref={svgRef} className="bg-white flex justify-center"></div>
-			<button onClick={handleDownload} className="px-4 py-2 bg-slate-600 text-white rounded">Download SVG</button>
-		</div>
+		<svg ref={svgRef} width={svgWidth} height={svgHeight} viewBox={viewBoxString} ></svg>
 	);
-};
-
-const isClockwisePath = (path: Path, start: [number, number]): boolean => {
-	let sum = 0;
-	let prev = start;
-	path.commands.forEach(cmd => {
-		if ('x' in cmd && 'y' in cmd) {
-			sum += (cmd.x - prev[0]) * (cmd.y + prev[1]);
-			prev = [cmd.x, cmd.y];
-		}
-	});
-	sum += (start[0] - prev[0]) * (start[1] + prev[1]);
-	return sum > 0;
 };
 
 export default TransferGenerator;
