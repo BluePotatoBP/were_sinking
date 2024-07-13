@@ -1,15 +1,12 @@
 'use client';
 import XlsxTableParser from "@/app/components/xlsxTableParser";
 import TransferEditor from "@/app/components/transferEditor";
+import { InputData } from '@/app/utils/types';
 
 import { ChangeEvent, useState } from "react";
 import { WorkBook, WorkSheet, read, utils } from "xlsx";
 import { MdFormatLineSpacing } from "react-icons/md";
 import { TbLayoutSidebarLeftExpandFilled, TbLayoutSidebarRightExpandFilled } from "react-icons/tb";
-
-interface InputData {
-	[key: string]: string | number;
-}
 
 const AppManager: React.FC = () => {
 
@@ -48,12 +45,12 @@ const AppManager: React.FC = () => {
 						<input type="file" accept='.xlsx, .xls' onChange={handleFileUpload} />
 					</div>
 					<div className="controls-container p-0 m-0 leading-none">
-						{fileData.length > 0 && (
+						{fileData && Array.isArray(fileData) ? fileData.length > 0 && (
 							<div className="table-controls flex gap-4">
 								<button onClick={handleCompactClick}><MdFormatLineSpacing className="text-white text-2xl" /></button>
 								<button onClick={handleExpand} className="text-white text-2xl">{isExpanded ? <TbLayoutSidebarLeftExpandFilled /> : <TbLayoutSidebarRightExpandFilled />}</button>
 							</div>
-						)}
+						) : null}
 					</div>
 				</div>
 				<XlsxTableParser data={fileData} isCompact={isCompact} isExpanded={isExpanded} key={isCompact.toString()} />

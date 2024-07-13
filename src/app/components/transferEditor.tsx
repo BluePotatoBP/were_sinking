@@ -1,12 +1,9 @@
 import React, { useState, useCallback, useEffect, Suspense, memo } from 'react';
 import { FaCirclePlus } from "react-icons/fa6";
 import { FaInfoCircle } from "react-icons/fa";
+import { InputData } from '@/app/utils/types';
 
 const TransferGenerator = React.lazy(() => import('@/app/components/transferGenerator'));
-
-interface InputData {
-	[key: string]: string | number;
-}
 
 interface TransferEditorProps {
 	data: InputData[];
@@ -14,36 +11,20 @@ interface TransferEditorProps {
 
 const TransferEditor: React.FC<TransferEditorProps> = ({ data }) => {
 	// legacy stuff, figure out later
-	const [text, setText] = useState("ID");
-	const [identifierText, setIdentifierText] = useState("Player Name - Team Name");
+	const [activeElement, setActiveElement] = useState(true);
 	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
 	const [fontSize, setFontSize] = useState<number>(26);
-
 	const [colors, setColors] = useState({
 		counterColor: '#0000ff',
 		glyphColor: '#ff0000',
 		perforationColor: '#00ff00'
 	});
 
-	const [activeElement, setActiveElement] = useState(true);
-
-	const handleColorChange = useCallback((index: number, colorType: string, value: string) => {
+	const handleColorChange = useCallback((colorType: string, value: string) => {
 		setColors(prevColors => ({
 			...prevColors,
 			[colorType]: value
 		}));
-	}, []);
-	// TODO: can you tell i have ADHD? - implement later :D
-	const handleTextChange = useCallback((value: string) => {
-		setText(value);
-	}, []);
-
-	const handleIdentifierTextChange = useCallback((value: string) => {
-		setIdentifierText(value);
-	}, []);
-
-	const handleFontSizeChange = useCallback((value: number) => {
-		setFontSize(value);
 	}, []);
 
 	return (
@@ -56,9 +37,9 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data }) => {
 							<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
 							<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
 							<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="p-2 w-[3.75rem]" />
-							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.glyphColor} onChange={(e) => handleColorChange(e.target.tabIndex, "glyphColor", e.target.value)} />
-							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.counterColor} onChange={(e) => handleColorChange(e.target.tabIndex, "counterColor", e.target.value)} />
-							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.perforationColor} onChange={(e) => handleColorChange(e.target.tabIndex, "perforationColor", e.target.value)} />
+							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
+							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
+							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
 						</div>
 						<div className="individual-id-container flex flex-row gap-2">
 							<input type="text" placeholder="ID 1" className="w-32 p-2" />
@@ -74,7 +55,9 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data }) => {
 			</div>
 			<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 max-h-[57.8vh] max-w-[40vw] overflow-y-scroll rounded-lg">
 				<Suspense fallback={<div>Loading...</div>}>
-					{data.map((i, index) => (<TransferGenerator data={i} key={index} />))}
+					{
+						data.map((item: InputData, index: number) => <TransferGenerator itemData={item} key={index} />)
+					}
 				</Suspense>
 			</div>
 			<button className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500">

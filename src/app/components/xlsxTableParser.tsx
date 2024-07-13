@@ -1,17 +1,12 @@
 'use client';
 import React, { useEffect, useState, ReactElement } from 'react';
-
-
-interface InputData {
-	[key: string]: string | number;
-}
+import { InputData } from '@/app/utils/types';
 
 interface XlsxTableParserProps {
 	data: InputData[];
 	isCompact?: boolean;
 	isExpanded?: boolean;
 }
-
 
 const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = false, isExpanded = true }) => {
 	const [compactState, setCompactState] = useState(isCompact);

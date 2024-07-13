@@ -1,15 +1,8 @@
 import opentype, { Path } from "opentype.js";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { InputData } from '@/app/utils/types';
 
-interface InputData {
-	[key: string]: string | number;
-}
-
-interface TransferGeneratorProps {
-	data: InputData;
-}
-
-const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
+const TransferGenerator: React.FC<{ itemData: InputData; }> = ({ itemData }) => {
 	const {
 		"Asset Name": assetName,
 		"Team Name": teamName,
@@ -17,7 +10,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
 		"ID RIGHT INSIDE": idRightInside,
 		"ID LEFT OUTSIDE": idLeftOutside,
 		"ID RIGHT OUTSIDE": idRightOutside,
-	} = data;
+	} = itemData;
 
 	const string = idLeftInside?.toString() + idRightInside?.toString() + idLeftOutside?.toString() + idRightOutside?.toString();
 
@@ -92,7 +85,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
 			console.error("Error loading font:", error);
 		}
 		return paths;
-	}, [addPathToSVG, font, fontSize, text]);
+	}, [addPathToSVG, font, fontSize]);
 
 	const createSVG = useCallback(async (forDownload: boolean = false): Promise<SVGSVGElement> => {
 		const svg = document.createElementNS(svgns, "g") as SVGSVGElement;
@@ -161,7 +154,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
 		svg.insertBefore(rect, svg.firstChild);
 
 		return svg;
-	}, [createTextGroup, fontSize, perforationColor, counterColor, glyphColor,]);
+	}, [createTextGroup, fontSize, perforationColor, identifierText, text]);
 
 	const isClockwisePath = (path: Path, start: [number, number]): boolean => {
 		let sum = 0;
@@ -186,7 +179,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ data }) => {
 		};
 
 		updateSvg();
-	}, [data]);
+	}, [itemData, createSVG]);
 
 	return (
 		<svg ref={svgRef} width={svgWidth} height={svgHeight} viewBox={viewBoxString} ></svg>
