@@ -1,24 +1,58 @@
-import React, { useState, useCallback, useEffect, Suspense, memo } from 'react';
-import { FaCirclePlus } from "react-icons/fa6";
-import { FaInfoCircle } from "react-icons/fa";
-import { InputData } from '@/app/utils/types';
+import React, { useState, useCallback, useEffect, useRef, Suspense, memo } from 'react';
+import { InputData, EditableColors } from '@/app/utils/types';
+import DownloadButton from '@/app/components/downloadButton';
+
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { FaPlusSquare } from 'react-icons/fa';
 
 const TransferGenerator = React.lazy(() => import('@/app/components/transferGenerator'));
 
-interface TransferEditorProps {
-	data: InputData[];
-}
+const useDebounce = <T extends (...args: any[]) => any>(callback: T, delay: number) => {
+	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-const TransferEditor: React.FC<TransferEditorProps> = ({ data }) => {
-	// legacy stuff, figure out later
-	const [activeElement, setActiveElement] = useState(true);
+	return useCallback((...args: Parameters<T>) => {
+		if (timeoutRef.current) {
+			clearTimeout(timeoutRef.current);
+		}
+
+		timeoutRef.current = setTimeout(() => {
+			callback(...args);
+		}, delay);
+	}, [callback, delay]);
+};
+
+const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
 	const [fontSize, setFontSize] = useState<number>(26);
-	const [colors, setColors] = useState({
+	const [colors, setColors] = useState<EditableColors>({
 		counterColor: '#0000ff',
 		glyphColor: '#ff0000',
 		perforationColor: '#00ff00'
 	});
+	const [editableData, setEditableData] = useState<InputData[]>(data);
+	const [currentPage, setCurrentPage] = useState(0);
+	const [isGlobalEdit, setIsGlobalEdit] = useState(false);
+	const [debouncedColors, setDebouncedColors] = useState(colors);
+
+	useEffect(() => {
+		setEditableData(data);
+	}, [data]);
+
+	const handlePrevPage = useCallback(() => {
+		setCurrentPage(prev => Math.max(0, prev - 1));
+	}, []);
+
+	const handleNextPage = useCallback(() => {
+		setCurrentPage(prev => Math.min(data.length - 1, prev + 1));
+	}, [data.length]);
+
+	const handleInputChange = useCallback((key: string, value: string | number) => {
+		setEditableData(prevData => {
+			const newData = [...prevData];
+			newData[currentPage] = { ...newData[currentPage], [key]: value };
+			return newData;
+		});
+	}, [currentPage]);
 
 	const handleColorChange = useCallback((colorType: string, value: string) => {
 		setColors(prevColors => ({
@@ -27,44 +61,98 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data }) => {
 		}));
 	}, []);
 
-	return (
-		<div className="p-4 flex flex-col rounded-2xl text-black bg-slate-800 gap-4">
-			<div className={`flex flex-row items-center gap-3 bg-slate-700 p-4 rounded-lg ${activeElement ? 'justify-between' : "justify-center"}`}>
-				{activeElement && (
-					<div className="editor-container flex flex-col gap-2">
-						<div className="settings flex flex-row gap-2 items-center">
-							<input type="text" placeholder="Identifier" className="w-32 p-2" />
-							<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
-							<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
-							<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="p-2 w-[3.75rem]" />
-							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
-							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
-							<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
-						</div>
-						<div className="individual-id-container flex flex-row gap-2">
-							<input type="text" placeholder="ID 1" className="w-32 p-2" />
-							<input type="text" placeholder="ID 2" className="w-32 p-2" />
-							<input type="text" placeholder="ID 2" className="w-32 p-2" />
-							<input type="text" placeholder="ID 3" className="w-32 p-2" />
-						</div>
+	const debouncedHandleColorChange = useDebounce((newColors: EditableColors) => {
+		setDebouncedColors(newColors);
+	}, 500);
+
+	// Debounce colors so they only really change every 0.5s
+	useEffect(() => {
+		debouncedHandleColorChange(colors);
+	}, [colors, debouncedHandleColorChange]);
+
+	// Page navigation via arrow keys
+	// TODO: even though isInput is giving correct values it prevents all keypresses
+	/* useEffect(() => {
+		const handleKeypress = (e: KeyboardEvent) => {
+			const isInput = document.activeElement instanceof HTMLInputElement;
+			console.log(isInput)
+			if(isInput) return;
+			if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && currentItem) {
+				if (e.key === 'ArrowLeft') handlePrevPage();
+				if (e.key === 'ArrowRight') handleNextPage();
+			}
+		};
+
+		window.addEventListener('keydown', handleKeypress);
+
+		return () => window.removeEventListener('keydown', handleKeypress);
+	}, [handlePrevPage, handleNextPage]); */
+
+	const currentItem = editableData[currentPage];
+
+	if (currentItem) {
+		return (
+			<div className="p-4 flex flex-col rounded-2xl text-black bg-slate-800 gap-4 min-w-[40vw] max-w-[40vw]">
+				{/* Editor controls */}
+				<div className="editor-container flex flex-row gap-4 justify-between">
+					{/* ID editor */}
+					<div className="id-editor flex flex-col gap-2 bg-slate-700 p-2 rounded-lg w-full min-h-[38vh] max-h-[38vh] overflow-y-scroll">
+						{Object.entries(currentItem).map(([key, value]) => (
+							<div key={key} className="flex flex-row justify-between items-center leading-none border-solid border-2 rounded-lg border-slate-600 p-2 hover:border-dashed">
+								<label className="text-white font-bold">{key.toUpperCase()}</label>
+								<input type="text" value={value as string} onChange={(e) => handleInputChange(key, e.target.value)} className="p-2 bg-slate-500 text-slate-300 rounded w-64" />
+							</div>
+						))}
 					</div>
-				)}
-				<div className="icon flex justify-center w-full">
-					<FaCirclePlus className={`text-white leading-none text-2xl cursor-pointer hover:text-slate-300 ${activeElement ? 'text-4xl' : "w-1/5"}`} title='Add New' />
+					{/* Colors and font */}
+					<div className="colors-editor flex flex-col gap-4 items-center justify-between bg-slate-700 p-4 rounded-lg">
+						<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
+						<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
+						<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="p-2 w-[3.75rem]" />
+						<input type="color" className='cursor-pointer w-[3.75rem]' value={debouncedColors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
+						<input type="color" className='cursor-pointer w-[3.75rem]' value={debouncedColors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
+						<input type="color" className='cursor-pointer w-[3.75rem]' value={debouncedColors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
+						{/* <input type="checkbox" checked={isGlobalEdit} onChange={(e) => setIsGlobalEdit(e.target.checked)} id="globalEdit" />
+							<label htmlFor="globalEdit" className="text-white">Apply Everywhere</label> */}
+					</div>
+				</div>
+
+				{/* Transfer preview */}
+				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 overflow-scroll rounded-lg min-h-[25vh] max-h-[25vh]">
+					<Suspense fallback={<div className='text-2xl font-bold'>Loading...</div>}>
+						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={debouncedColors} isGlobalEdit={isGlobalEdit} globalColors={debouncedColors} forDownload={false} />
+					</Suspense>
+				</div>
+
+				{/* Controls */}
+				<div className="controls flex justify-between items-center gap-4">
+					{/* Page buttons */}
+					<div className="control-buttons flex items-center gap-4">
+						<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 bg-slate-600 text-white rounded-lg">
+							<FaChevronLeft />
+						</button>
+						<span className="text-white">{`${currentPage + 1} of ${data.length}`}</span>
+						<button onClick={handleNextPage} disabled={currentPage === data.length - 1} className="p-2 bg-slate-600 text-white rounded-lg">
+							<FaChevronRight />
+						</button>
+					</div>
+					{ /* Download and new button */}
+					<div className="action-buttons flex flex-row gap-4">
+						<button className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 cursor-not-allowed" title='Add new Transfer'>
+							<FaPlusSquare className='leading-none text-xl text-white' />
+						</button>
+						<DownloadButton editableData={editableData} currentPage={currentPage} font={font} fontSize={fontSize} isGlobalEdit={isGlobalEdit} debouncedColors={debouncedColors} />
+					</div>
 				</div>
 			</div>
-			<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 max-h-[57.8vh] max-w-[40vw] overflow-y-scroll rounded-lg">
-				<Suspense fallback={<div>Loading...</div>}>
-					{
-						data.map((item: InputData, index: number) => <TransferGenerator itemData={item} key={index} />)
-					}
-				</Suspense>
+		);
+	} else {
+		return (
+			<div className="flex p-4 min-w-[30vw] min-h-[20vh] rounded-2xl text-black bg-slate-800 justify-center items-center">
+				<div className="info-text leading-none text-white">WAITING FOR INPUT</div>
 			</div>
-			<button className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500">
-				Download <FaInfoCircle title='Download transfer(s) as an SVG file. Further processing may be required.' />
-			</button>
-		</div>
-	);
+		);
+	}
 };
 
 
