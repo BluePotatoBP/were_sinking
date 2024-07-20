@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, Suspense, memo } from 'react';
 import { InputData, EditableColors } from '@/app/utils/types';
+import { useDebounce } from '@/app/utils/hooks';
 import DownloadButton from '@/app/components/downloadButton';
 
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
@@ -7,19 +8,6 @@ import { FaPlusSquare } from 'react-icons/fa';
 
 const TransferGenerator = React.lazy(() => import('@/app/components/transferGenerator'));
 
-const useDebounce = <T extends (...args: any[]) => any>(callback: T, delay: number) => {
-	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-	return useCallback((...args: Parameters<T>) => {
-		if (timeoutRef.current) {
-			clearTimeout(timeoutRef.current);
-		}
-
-		timeoutRef.current = setTimeout(() => {
-			callback(...args);
-		}, delay);
-	}, [callback, delay]);
-};
 
 const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
@@ -31,8 +19,6 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 	});
 	const [editableData, setEditableData] = useState<InputData[]>(data);
 	const [currentPage, setCurrentPage] = useState(0);
-	const [isGlobalEdit, setIsGlobalEdit] = useState(false);
-	const [debouncedColors, setDebouncedColors] = useState(colors);
 
 	useEffect(() => {
 		setEditableData(data);
@@ -54,29 +40,20 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 		});
 	}, [currentPage]);
 
-	const handleColorChange = useCallback((colorType: string, value: string) => {
+	const handleColorChange = useDebounce((colorType: string, value: string) => {
 		setColors(prevColors => ({
 			...prevColors,
 			[colorType]: value
 		}));
-	}, []);
+	}, 200);
 
-	const debouncedHandleColorChange = useDebounce((newColors: EditableColors) => {
-		setDebouncedColors(newColors);
-	}, 500);
-
-	// Debounce colors so they only really change every 0.5s
-	useEffect(() => {
-		debouncedHandleColorChange(colors);
-	}, [colors, debouncedHandleColorChange]);
+	const currentItem = editableData[currentPage];
 
 	// Page navigation via arrow keys
-	// TODO: even though isInput is giving correct values it prevents all keypresses
-	/* useEffect(() => {
+	useEffect(() => {
 		const handleKeypress = (e: KeyboardEvent) => {
 			const isInput = document.activeElement instanceof HTMLInputElement;
-			console.log(isInput)
-			if(isInput) return;
+			if (isInput) return;
 			if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && currentItem) {
 				if (e.key === 'ArrowLeft') handlePrevPage();
 				if (e.key === 'ArrowRight') handleNextPage();
@@ -86,9 +63,7 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 		window.addEventListener('keydown', handleKeypress);
 
 		return () => window.removeEventListener('keydown', handleKeypress);
-	}, [handlePrevPage, handleNextPage]); */
-
-	const currentItem = editableData[currentPage];
+	}, [handlePrevPage, handleNextPage, currentItem]);
 
 	if (currentItem) {
 		return (
@@ -109,18 +84,16 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 						<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
 						<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
 						<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="p-2 w-[3.75rem]" />
-						<input type="color" className='cursor-pointer w-[3.75rem]' value={debouncedColors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
-						<input type="color" className='cursor-pointer w-[3.75rem]' value={debouncedColors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
-						<input type="color" className='cursor-pointer w-[3.75rem]' value={debouncedColors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
-						{/* <input type="checkbox" checked={isGlobalEdit} onChange={(e) => setIsGlobalEdit(e.target.checked)} id="globalEdit" />
-							<label htmlFor="globalEdit" className="text-white">Apply Everywhere</label> */}
+						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
+						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
+						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
 					</div>
 				</div>
 
 				{/* Transfer preview */}
 				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 overflow-scroll rounded-lg min-h-[25vh] max-h-[25vh]">
 					<Suspense fallback={<div className='text-2xl font-bold'>Loading...</div>}>
-						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={debouncedColors} isGlobalEdit={isGlobalEdit} globalColors={debouncedColors} forDownload={false} />
+						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={colors} globalColors={colors} forDownload={false} />
 					</Suspense>
 				</div>
 
@@ -141,7 +114,7 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 						<button className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 cursor-not-allowed" title='Add new Transfer'>
 							<FaPlusSquare className='leading-none text-xl text-white' />
 						</button>
-						<DownloadButton editableData={editableData} currentPage={currentPage} font={font} fontSize={fontSize} isGlobalEdit={isGlobalEdit} debouncedColors={debouncedColors} />
+						<DownloadButton editableData={editableData} currentPage={currentPage} font={font} fontSize={fontSize} debouncedColors={colors} />
 					</div>
 				</div>
 			</div>
