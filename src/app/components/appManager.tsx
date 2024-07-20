@@ -20,7 +20,7 @@ const AppManager: React.FC = () => {
 
 	const handleFileUpload = (input: ChangeEvent<HTMLInputElement>) => {
 		const reader = new FileReader();
-		if (input.target.files) {
+		if (input.target.files && input.target.files.length > 0) {
 			reader.readAsArrayBuffer(input.target.files[0] as Blob);
 			reader.onload = (loaded) => {
 				const data = loaded.target?.result;
@@ -29,7 +29,21 @@ const AppManager: React.FC = () => {
 				const sheet: WorkSheet = workbook.Sheets[sheetName];
 				const parsedData: InputData[] = utils.sheet_to_json(sheet);
 
-				setFileData(parsedData);
+				// Filter data to get rid of emoji and symbols
+				const regexStr = /[\p{L}\d!@#$%^&*()?.,<>\/\\'":;+_\-\+~`\|{}\[\]=]+/gmiu;
+
+				const filteredData: InputData[] = parsedData.map((item) => {
+					const filteredItem: InputData = {};
+					Object.entries(item).forEach(([key, value]) => {
+						const matchedValue = value.toString().match(regexStr)?.join(' ');
+						if (matchedValue) {
+							// Convert to number if possible, otherwise keep as string
+							filteredItem[key] = isNaN(Number(matchedValue)) ? matchedValue : Number(matchedValue);
+						}
+					});
+					return filteredItem;
+				});
+				setFileData(filteredData);
 			};
 		}
 	};
