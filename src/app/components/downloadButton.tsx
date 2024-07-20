@@ -9,11 +9,10 @@ interface DownloadButtonProps {
 	currentPage: number;
 	font: 'NIKE' | 'PUMA';
 	fontSize: number;
-	isGlobalEdit: boolean;
 	debouncedColors: EditableColors;
 }
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPage, font, fontSize, isGlobalEdit, debouncedColors }) => {
+const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPage, font, fontSize, debouncedColors }) => {
 	const [isShiftPressed, setIsShiftPressed] = useState(false);
 
 	useEffect(() => {
@@ -36,7 +35,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 
 			const root = createRoot(tempDiv);
 
-			root.render(<TransferGenerator itemData={item} font={font} fontSize={fontSize} colors={debouncedColors} isGlobalEdit={isGlobalEdit} globalColors={debouncedColors} forDownload={true} />);
+			root.render(<TransferGenerator itemData={item} font={font} fontSize={fontSize} colors={debouncedColors} globalColors={debouncedColors} forDownload={true} />);
 
 			// Use a MutationObserver to wait for the SVG to be rendered
 			const observer = new MutationObserver(() => {
@@ -51,7 +50,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 
 			observer.observe(tempDiv, { childList: true, subtree: true });
 		});
-	}, [font, fontSize, isGlobalEdit, debouncedColors]);
+	}, [font, fontSize, debouncedColors]);
 
 	const arrangeInGrid = useCallback((svgs: string[]): string => {
 		const gridSize = Math.ceil(Math.sqrt(svgs.length));
@@ -99,7 +98,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 			const allSVGs = await Promise.all(editableData.map(generateSVG));
 			svgToDownload = arrangeInGrid(allSVGs);
 		}
-		const randomString = window.crypto.randomUUID().substring(0, 4)
+		const randomString = window.crypto.randomUUID().substring(0, 4);
 		const blob = new Blob([svgToDownload], { type: 'image/svg+xml' });
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
@@ -115,7 +114,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 		<button
 			onClick={handleDownload}
 			className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500"
-			title={isShiftPressed ? 'Download current transfer as SVG' : 'Download all transfers as SVG'}
+			title={isShiftPressed ? 'Download current transfer as SVG' : 'Download all transfers as SVG (Hold shift for current)'}
 		>
 			<IoMdDownload className='text-xl' />
 			{isShiftPressed ? 'Current' : 'All'}
