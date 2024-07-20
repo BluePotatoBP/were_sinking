@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, useMemo, memo } from "react";
+import { useCallback, useEffect, useState, memo } from "react";
 import opentype, { Path } from "opentype.js";
 import { InputData, EditableColors } from '@/app/utils/types';
 
@@ -7,15 +7,13 @@ interface TransferGeneratorProps {
 	font: 'NIKE' | 'PUMA' | 'PUMA ALT' | 'CONDENSED';
 	fontSize: number;
 	colors: EditableColors;
-	isGlobalEdit: boolean;
 	globalColors: EditableColors;
 	forDownload: boolean;
 }
 
-const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'NIKE', fontSize = 26, colors, isGlobalEdit, globalColors, forDownload }) => {
+const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'NIKE', fontSize = 26, colors, globalColors, forDownload }) => {
 	const [svgContent, setSvgContent] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const effectiveColors = isGlobalEdit ? globalColors : colors;
 
 	const createSVG = useCallback(async (): Promise<string> => {
 		const {
@@ -41,8 +39,8 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 		try {
 			const addPathToSVG = (path: Path, start: [number, number], colorCounters: boolean = true) => {
 				const color = colorCounters
-					? (isClockwisePath(path, start) ? effectiveColors.counterColor : effectiveColors.glyphColor)
-					: effectiveColors.glyphColor;
+					? (isClockwisePath(path, start) ? colors.counterColor : colors.glyphColor)
+					: colors.glyphColor;
 
 				svgPaths.push(`<path d="${path.toPathData(2)}" fill="none" stroke="${color}" stroke-width="${forDownload ? '0.0002' : '1'}" />`);
 
@@ -111,7 +109,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			const height = (maxY - minY).toFixed(2);
 
 			// Create the perforation rectangle
-			const rectPath = `<rect x="${minX.toFixed(2)}" y="${minY.toFixed(2)}" width="${width}" height="${height}" fill="none" stroke="${effectiveColors.perforationColor}" stroke-width="${forDownload ? '0.0002' : '1'}" />`;
+			const rectPath = `<rect x="${minX.toFixed(2)}" y="${minY.toFixed(2)}" width="${width}" height="${height}" fill="none" stroke="${colors.perforationColor}" stroke-width="${forDownload ? '0.0002' : '1'}" />`;
 
 			// Combine all paths
 			const allPaths = [rectPath, ...svgPaths].join('');
@@ -123,7 +121,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			console.error("Error creating SVG:", error);
 			throw new Error("Failed to create transfer. Please try again.");
 		}
-	}, [itemData, font, fontSize, effectiveColors, forDownload]);
+	}, [itemData, font, fontSize, colors, forDownload]);
 
 	useEffect(() => {
 		if (itemData) {
