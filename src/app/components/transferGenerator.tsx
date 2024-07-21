@@ -1,21 +1,27 @@
 import { useCallback, useEffect, useState, memo } from "react";
 import opentype, { Path } from "opentype.js";
 import { InputData, EditableColors } from '@/app/utils/types';
+import { useDebounce } from '@/app/utils/hooks';
 
 interface TransferGeneratorProps {
 	itemData: InputData;
 	font: 'NIKE' | 'PUMA' | 'PUMA ALT' | 'CONDENSED';
 	fontSize: number;
 	colors: EditableColors;
-	globalColors: EditableColors;
 	forDownload: boolean;
 }
 
-const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'NIKE', fontSize = 26, colors, globalColors, forDownload }) => {
+const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'NIKE', fontSize = 26, colors, forDownload }) => {
 	const [svgContent, setSvgContent] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	const createSVG = useCallback(async (): Promise<string> => {
+		let dynamicFont: opentype.Font;
+		let svgPaths: string[] = [];
+		let minX = Infinity,
+			minY = Infinity,
+			maxX = -Infinity,
+			maxY = -Infinity;
 		const {
 			"Asset Name": assetName,
 			"Team": teamName,
@@ -24,17 +30,6 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			"ID RIGHT OUTSIDE": idRightOutside,
 			"ID RIGHT INSIDE": idRightInside,
 		} = itemData;
-
-		let dynamicFont: opentype.Font;
-		const consistentSpaces = '          '; // I havent looked into separation with any other methods yet. temporary?
-		const verticalSpacing = fontSize * 1.5;
-		const text = `${idLeftOutside ? idLeftOutside + consistentSpaces : ''}${idLeftInside ? idLeftInside + consistentSpaces : ''}${idRightOutside ? idRightOutside + consistentSpaces : ''}${idRightInside ? idRightInside : ''}`;
-		const identifierText = `${assetName} - ${teamName}`;
-		let svgPaths: string[] = [];
-		let minX = Infinity,
-			minY = Infinity,
-			maxX = -Infinity,
-			maxY = -Infinity;
 
 		try {
 			const addPathToSVG = (path: Path, start: [number, number], colorCounters: boolean = true) => {
@@ -87,11 +82,16 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			};
 
 			// Create identifier text
-			dynamicFont = await opentype.load('fonts/condensed.ttf');;
+			dynamicFont = await opentype.load('fonts/condensed.ttf');
+			const identifierText = `${assetName} - ${teamName}`;
 			createTextGroup(0, 10, false, identifierText);
 
 			// Create 4 duplicates and stack below each other
-			dynamicFont = await opentype.load(font === 'NIKE' ? 'fonts/nike.ttf' : 'fonts/puma.ttf');;
+			dynamicFont = await opentype.load(font === 'NIKE' ? 'fonts/nike.ttf' : 'fonts/puma.ttf');
+			const spacing = font === "NIKE" ? '            ' : '                 '; // I hate this
+			const verticalSpacing = fontSize * 1.5;
+			const text = `${idLeftOutside ? idLeftOutside + spacing : ''}${idLeftInside ? idLeftInside + spacing : ''}${idRightOutside ? idRightOutside + spacing : ''}${idRightInside ? idRightInside : ''}`;
+
 			[0, 1, 2, 3].forEach(i => {
 				createTextGroup(90, 50 + i * verticalSpacing, true, text);
 			});
@@ -113,13 +113,11 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 
 			// Combine all paths
 			const allPaths = [rectPath, ...svgPaths].join('');
-
 			// Create the final SVG string
-			return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${minX.toFixed(2)} ${minY.toFixed(2)} ${width} ${height}">${allPaths}</svg>`;
+			return `<svg xmlns="http://www.w3.org/2000/svg" ${forDownload ? `width=${width}` : 'width="100%"'} height="${height}" viewBox="${minX.toFixed(2)} ${minY.toFixed(2)} ${width} ${height}">${allPaths}</svg>`;
 
 		} catch (error) {
-			console.error("Error creating SVG:", error);
-			throw new Error("Failed to create transfer. Please try again.");
+			throw new Error(`${error}`);
 		}
 	}, [itemData, font, fontSize, colors, forDownload]);
 
@@ -132,7 +130,17 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 		}
 	}, [createSVG, itemData]);
 
-	if (error) return <div className="error bg-red-500 text-white rounded-lg p-4">{error}</div>;
+	// A non zero amount of time was spent styling this error box, that hopefully no one should ever see.
+	if (error) return (
+		<div className="error flex flex-col bg-red-500 rounded-lg p-8 justify-center items-left font-sans gap-2">
+			<div className="error-info text-white font-bold text-xl border-l-4 border-red-300 border-solid px-4">
+				Failed to generate Transfer(s)
+			</div>
+			<div className="error-message text-red-700 font-regular bg-red-100 p-4 rounded-lg">
+				{error}
+			</div>
+		</div>
+	);
 	if (!svgContent) return;
 
 	return <div dangerouslySetInnerHTML={{ __html: svgContent }} />;
