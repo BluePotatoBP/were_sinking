@@ -1,28 +1,34 @@
-import React, { useState, useCallback, useEffect, useRef, Suspense, memo } from 'react';
-import { InputData, EditableColors } from '@/app/utils/types';
-import { useDebounce } from '@/app/utils/hooks';
+import React, { useState, useCallback, useEffect, Suspense, memo } from 'react';
 import DownloadButton from '@/app/components/downloadButton';
+import { useDebounce } from '@/app/utils/hooks';
+import { InputData, EditableColors } from '@/app/utils/types';
+import { individualTemplate } from '@/app/utils/misc';
 
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import { FaPlusSquare } from 'react-icons/fa';
 
 const TransferGenerator = React.lazy(() => import('@/app/components/transferGenerator'));
 
+interface TransferEditorProps {
+	data: InputData[];
+	tabType: "INDIVIDUAL" | "MASTERFILE";
+	onDataUpdate?: React.Dispatch<React.SetStateAction<InputData[]>>;
+}
 
-const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
+const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUpdate }) => {
 	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
 	const [fontSize, setFontSize] = useState<number>(26);
+	const [currentPage, setCurrentPage] = useState(0);
 	const [colors, setColors] = useState<EditableColors>({
 		counterColor: '#0000ff',
 		glyphColor: '#ff0000',
 		perforationColor: '#00ff00'
 	});
-	const [editableData, setEditableData] = useState<InputData[]>(data);
-	const [currentPage, setCurrentPage] = useState(0);
 
 	useEffect(() => {
-		setEditableData(data);
-	}, [data]);
+		setCurrentPage(0);
+		setFontSize(font === "NIKE" ? 26 : 32);
+	}, [tabType, font]);
 
 	const handlePrevPage = useCallback(() => {
 		setCurrentPage(prev => Math.max(0, prev - 1));
@@ -33,11 +39,24 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 	}, [data.length]);
 
 	const handleInputChange = useCallback((key: string, value: string | number) => {
-		setEditableData(prevData => {
-			const newData = [...prevData];
-			newData[currentPage] = { ...newData[currentPage], [key]: value };
-			return newData;
-		});
+		if (onDataUpdate) {
+			onDataUpdate(prevData => {
+				const newData = [...prevData];
+				newData[currentPage] = { ...newData[currentPage], [key]: value };
+				return newData;
+			});
+		}
+	}, [currentPage, onDataUpdate]);
+
+	const handleAddNew = useCallback(() => {
+		if (onDataUpdate) {
+			onDataUpdate(prevData => {
+				const newData = [...prevData];
+				newData.push(individualTemplate);
+				return newData;
+			});
+			setCurrentPage(prevPage => prevPage + 1);
+		}
 	}, [currentPage]);
 
 	const handleColorChange = useDebounce((colorType: string, value: string) => {
@@ -47,7 +66,7 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 		}));
 	}, 200);
 
-	const currentItem = editableData[currentPage];
+	const currentItem = data[currentPage];
 
 	// Page navigation via arrow keys
 	useEffect(() => {
@@ -67,7 +86,7 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 
 	if (currentItem) {
 		return (
-			<div className="p-4 flex flex-col rounded-2xl text-black bg-slate-800 gap-4 min-w-[40vw] max-w-[40vw]">
+			<div className="p-4 flex flex-col rounded-2xl text-black bg-slate-800 gap-4 min-w-[40vw] max-w-[40vw] h-full justify-evenly">
 				{/* Editor controls */}
 				<div className="editor-container flex flex-row gap-4 justify-between">
 					{/* ID editor */}
@@ -93,7 +112,7 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 				{/* Transfer preview */}
 				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 overflow-scroll rounded-lg min-h-[25vh] max-h-[25vh]">
 					<Suspense fallback={<div className='text-2xl font-bold'>Loading...</div>}>
-						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={colors} globalColors={colors} forDownload={false} />
+						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={colors} forDownload={false} />
 					</Suspense>
 				</div>
 
@@ -111,10 +130,13 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 					</div>
 					{ /* Download and new button */}
 					<div className="action-buttons flex flex-row gap-4">
-						<button className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 cursor-not-allowed" title='Add new Transfer'>
-							<FaPlusSquare className='leading-none text-xl text-white' />
-						</button>
-						<DownloadButton editableData={editableData} currentPage={currentPage} font={font} fontSize={fontSize} debouncedColors={colors} />
+						{tabType === "INDIVIDUAL" && // FIXME: wont add new transfer if on masterfile page
+							(
+								<button className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500" title='Add new Transfer' onClick={handleAddNew}>
+									<FaPlusSquare className='leading-none text-xl text-white' />
+								</button>
+							)}
+						<DownloadButton editableData={data} currentPage={currentPage} font={font} fontSize={fontSize} colors={colors} />
 					</div>
 				</div>
 			</div>
@@ -122,7 +144,18 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 	} else {
 		return (
 			<div className="flex p-4 min-w-[30vw] min-h-[20vh] rounded-2xl text-black bg-slate-800 justify-center items-center">
-				<div className="info-text leading-none text-white">WAITING FOR INPUT</div>
+				{
+					tabType === "INDIVIDUAL"
+						? <div className="info-text leading-none text-white font-sans font-light">Initializing...</div>
+						: <div className="info-text leading-none text-white font-sans font-light">
+							Import
+							<span className='bg-slate-600 px-1 mx-1 rounded-md font-normal'>.xlsx</span>
+							or
+							<span className='bg-slate-600 px-1 mx-1 rounded-md font-normal'>.xls</span>
+							file to proceed.
+						</div>
+				}
+
 			</div>
 		);
 	}
@@ -130,5 +163,5 @@ const TransferEditor: React.FC<{ data: InputData[]; }> = ({ data }) => {
 
 
 export default memo(TransferEditor, (prevProps, nextProps) => {
-	return prevProps.data === nextProps.data;
+	return prevProps.data === nextProps.data && prevProps.tabType === nextProps.tabType;
 });
