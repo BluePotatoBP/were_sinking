@@ -25,7 +25,7 @@ const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = fal
 	}, [data]);
 
 	return (
-		<div className={`parser-container flex flex-col gap-4 max-w-[50vw] ${isExpanded ? '' : 'max-w-16'}`}>
+		<div className={`parser-container flex flex-col gap-4 self-end ${isExpanded ? 'max-w-[50vw]' : 'max-w-[18vw]'}`}>
 			{data.length > 0 && (
 				<div className="rounded-2xl p-4 bg-slate-800">
 					<div className="rounded-lg text-black overflow-scroll">
