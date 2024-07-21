@@ -108,7 +108,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 		link.click();
 		document.body.removeChild(link);
 		URL.revokeObjectURL(url);
-	}, [isShiftPressed, editableData, currentPage, generateSVG, arrangeInGrid]);
+	}, [isShiftPressed, editableData, currentPage, generateSVG, arrangeInGrid, font]);
 
 	return (
 		<button

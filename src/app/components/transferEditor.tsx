@@ -57,7 +57,7 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 			});
 			setCurrentPage(prevPage => prevPage + 1);
 		}
-	}, [currentPage]);
+	}, [onDataUpdate]);
 
 	const handleColorChange = useDebounce((colorType: string, value: string) => {
 		setColors(prevColors => ({
