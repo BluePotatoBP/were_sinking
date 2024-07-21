@@ -9,10 +9,10 @@ interface DownloadButtonProps {
 	currentPage: number;
 	font: 'NIKE' | 'PUMA';
 	fontSize: number;
-	debouncedColors: EditableColors;
+	colors: EditableColors;
 }
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPage, font, fontSize, debouncedColors }) => {
+const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPage, font, fontSize, colors }) => {
 	const [isShiftPressed, setIsShiftPressed] = useState(false);
 
 	useEffect(() => {
@@ -35,7 +35,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 
 			const root = createRoot(tempDiv);
 
-			root.render(<TransferGenerator itemData={item} font={font} fontSize={fontSize} colors={debouncedColors} globalColors={debouncedColors} forDownload={true} />);
+			root.render(<TransferGenerator itemData={item} font={font} fontSize={fontSize} colors={colors} forDownload={true} />);
 
 			// Use a MutationObserver to wait for the SVG to be rendered
 			const observer = new MutationObserver(() => {
@@ -50,7 +50,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 
 			observer.observe(tempDiv, { childList: true, subtree: true });
 		});
-	}, [font, fontSize, debouncedColors]);
+	}, [font, fontSize, colors]);
 
 	const arrangeInGrid = useCallback((svgs: string[]): string => {
 		const gridSize = Math.ceil(Math.sqrt(svgs.length));
@@ -103,7 +103,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = isShiftPressed ? `transfer_${currentPage + 1}.svg` : `all_transfers_${randomString}.svg`;
+		link.download = isShiftPressed ? `transfer_${currentPage + 1}.svg` : `all_${font}_transfers_${randomString}.svg`;
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
