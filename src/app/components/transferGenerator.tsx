@@ -5,7 +5,7 @@ import { useDebounce } from '@/app/utils/hooks';
 
 interface TransferGeneratorProps {
 	itemData: InputData;
-	font: 'NIKE' | 'PUMA' | 'PUMA ALT' | 'CONDENSED';
+	font: 'NIKE' | 'PUMA' | 'CONDENSED';
 	fontSize: number;
 	colors: EditableColors;
 	forDownload: boolean;
@@ -49,8 +49,9 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 				});
 			};
 
-			const createTextGroup = async (x: number, y: number, colorCounters: boolean, inputText: string) => {
-				const path = dynamicFont.getPath(inputText, x, y, fontSize);
+			const createTextGroup = async (x: number, y: number, colorCounters: boolean, inputText: string, isCondensed: boolean = false) => {
+				const dynamicFontSize = isCondensed ? Math.min(Math.max(fontSize, 10), 26) : fontSize;
+				const path = dynamicFont.getPath(inputText, x, y, dynamicFontSize);
 				let currentPath = new Path();
 				let pathStart: [number, number] | null = null;
 
@@ -83,17 +84,17 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 
 			// Create identifier text
 			dynamicFont = await opentype.load('fonts/condensed.ttf');
-			const identifierText = `${assetName} - ${teamName}`;
-			createTextGroup(0, 10, false, identifierText);
+			const identifierText = `${assetName ? assetName : 'N/A'}${teamName ? " - " + teamName : ''}`;
+			createTextGroup(0, 10, false, identifierText, true);
 
 			// Create 4 duplicates and stack below each other
 			dynamicFont = await opentype.load(font === 'NIKE' ? 'fonts/nike.ttf' : 'fonts/puma.ttf');
-			const spacing = font === "NIKE" ? '            ' : '                 '; // I hate this
+			const spacing = '            ';
 			const verticalSpacing = fontSize * 1.5;
 			const text = `${idLeftOutside ? idLeftOutside + spacing : ''}${idLeftInside ? idLeftInside + spacing : ''}${idRightOutside ? idRightOutside + spacing : ''}${idRightInside ? idRightInside : ''}`;
 
 			[0, 1, 2, 3].forEach(i => {
-				createTextGroup(90, 50 + i * verticalSpacing, true, text);
+				createTextGroup(90, (10 + fontSize) + (i * verticalSpacing), text === "" ? false : true, text === "" ? "N/A" : text);
 			});
 
 			// Add padding
@@ -121,14 +122,18 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 		}
 	}, [itemData, font, fontSize, colors, forDownload]);
 
+	const debouncedSetSVGContent = useDebounce((svg: string) => {
+		setSvgContent(svg);
+	}, 50);
+
 	useEffect(() => {
 		if (itemData) {
-			createSVG().then(svg => setSvgContent(svg)).catch(err => setError(err.message));
+			createSVG().then(svg => debouncedSetSVGContent(svg)).catch(err => setError(err.message));
 		} else {
 			setSvgContent(null);
 			setError(null);
 		}
-	}, [createSVG, itemData]);
+	}, [createSVG, itemData, debouncedSetSVGContent]);
 
 	// A non zero amount of time was spent styling this error box, that hopefully no one should ever see.
 	if (error) return (
