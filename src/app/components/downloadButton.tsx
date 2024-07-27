@@ -113,7 +113,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 	return (
 		<button
 			onClick={handleDownload}
-			className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500"
+			className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500"
 			title={isShiftPressed ? 'Download current transfer as SVG' : 'Download all transfers as SVG (Hold shift for current)'}
 		>
 			<IoMdDownload className='text-xl' />

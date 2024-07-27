@@ -86,23 +86,23 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 
 	if (currentItem) {
 		return (
-			<div className="p-4 flex flex-col rounded-2xl text-black bg-slate-800 gap-4 min-w-[40vw] max-w-[40vw] h-full justify-evenly">
+			<div className="p-4 flex flex-col rounded-2xl text-black dark:bg-slate-800 bg-slate-400 gap-4 min-w-[40vw] max-w-full lg:w-[30vw] lg:max-h-[80vh] justify-evenly lg:overflow-y-scroll text-xs 2xl:text-base">
 				{/* Editor controls */}
-				<div className="editor-container flex flex-row gap-4 justify-between">
+				<div className="editor-container flex flex-col md:flex-row gap-4 justify-between 2xl:max-h-[30vh]">
 					{/* ID editor */}
-					<div className="id-editor flex flex-col gap-2 bg-slate-700 p-2 rounded-lg w-full min-h-[38vh] max-h-[38vh] overflow-y-scroll">
+					<div className="id-editor flex flex-col gap-2 dark:bg-slate-700 bg-slate-300 p-2 rounded-lg w-full overflow-y-scroll">
 						{Object.entries(currentItem).map(([key, value]) => (
-							<div key={key} className="flex flex-row justify-between items-center leading-none border-solid border-2 rounded-lg border-slate-600 p-2 hover:border-dashed">
+							<div key={key} className="flex flex-row justify-between items-center leading-none border-solid border-2 rounded-lg dark:border-slate-600 border-slate-200 p-2 hover:border-dashed">
 								<label className="text-white font-bold">{key.toUpperCase()}</label>
-								<input type="text" value={value as string} onChange={(e) => handleInputChange(key, e.target.value)} className="p-2 bg-slate-500 text-slate-300 rounded w-64" />
+								<input type="text" value={value as string} onChange={(e) => handleInputChange(key, e.target.value)} className="p-2 dark:bg-slate-500 bg-slate-200 dark:text-slate-300 text-slate-400 rounded w-3/5" />
 							</div>
 						))}
 					</div>
 					{/* Colors and font */}
-					<div className="colors-editor flex flex-col gap-4 items-center justify-between bg-slate-700 p-4 rounded-lg">
-						<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
-						<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'text-gray-800 bg-gray-500'}`} />
-						<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="p-2 w-[3.75rem]" />
+					<div className="colors-editor flex flex-row md:flex-col gap-4 items-center justify-between dark:bg-slate-700 bg-slate-300 p-4 rounded-lg">
+						<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+						<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+						<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="p-2 w-[3.75rem]" min={10} />
 						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
 						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
 						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
@@ -119,12 +119,12 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 				{/* Controls */}
 				<div className="controls flex justify-between items-center gap-4">
 					{/* Page buttons */}
-					<div className="control-buttons flex items-center gap-4">
-						<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 bg-slate-600 text-white rounded-lg">
+					<div className="control-buttons flex items-center gap-4 dark:text-white text-slate-600">
+						<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg">
 							<FaChevronLeft />
 						</button>
-						<span className="text-white">{`${currentPage + 1} of ${data.length}`}</span>
-						<button onClick={handleNextPage} disabled={currentPage === data.length - 1} className="p-2 bg-slate-600 text-white rounded-lg">
+						<span className="dark:text-white text-slate-600">{`${currentPage + 1} of ${data.length}`}</span>
+						<button onClick={handleNextPage} disabled={currentPage === data.length - 1} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg">
 							<FaChevronRight />
 						</button>
 					</div>
@@ -132,8 +132,8 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 					<div className="action-buttons flex flex-row gap-4">
 						{tabType === "INDIVIDUAL" && // FIXME: wont add new transfer if on masterfile page
 							(
-								<button className="p-4 bg-slate-600 text-white rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500" title='Add new Transfer' onClick={handleAddNew}>
-									<FaPlusSquare className='leading-none text-xl text-white' />
+								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500" title='Add new Transfer' onClick={handleAddNew}>
+									<FaPlusSquare className='leading-none text-xl' />
 								</button>
 							)}
 						<DownloadButton editableData={data} currentPage={currentPage} font={font} fontSize={fontSize} colors={colors} />
@@ -143,15 +143,15 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 		);
 	} else {
 		return (
-			<div className="flex p-4 min-w-[30vw] min-h-[20vh] rounded-2xl text-black bg-slate-800 justify-center items-center">
+			<div className="flex p-4 min-w-[30vw] min-h-[20vh] rounded-2xl text-black dark:bg-slate-800 bg-slate-400 justify-center items-center">
 				{
 					tabType === "INDIVIDUAL"
-						? <div className="info-text leading-none text-white font-sans font-light">Initializing...</div>
-						: <div className="info-text leading-none text-white font-sans font-light">
+						? <div className="info-text leading-none dark:text-white text-slate-600 font-sans font-light">Initializing...</div>
+						: <div className="info-text leading-none dark:text-white text-slate-600 font-sans font-light">
 							Import
-							<span className='bg-slate-600 px-1 mx-1 rounded-md font-normal'>.xlsx</span>
+							<span className='dark:bg-slate-600 bg-slate-200 px-1 mx-1 rounded-md font-normal'>.xlsx</span>
 							or
-							<span className='bg-slate-600 px-1 mx-1 rounded-md font-normal'>.xls</span>
+							<span className='dark:bg-slate-600 bg-slate-200 px-1 mx-1 rounded-md font-normal'>.xls</span>
 							file to proceed.
 						</div>
 				}

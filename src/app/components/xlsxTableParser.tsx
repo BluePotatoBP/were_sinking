@@ -25,12 +25,12 @@ const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = fal
 	}, [data]);
 
 	return (
-		<div className={`parser-container flex flex-col gap-4 self-end ${isExpanded ? 'max-w-[50vw]' : 'max-w-[18vw]'}`}>
+		<div className={`parser-container flex flex-col gap-4 self-end w-full`}>
 			{data.length > 0 && (
-				<div className="rounded-2xl p-4 bg-slate-800">
-					<div className="rounded-lg text-black overflow-scroll">
+				<div className="rounded-2xl p-4 dark:bg-slate-800 bg-slate-400">
+					<div className="rounded-lg text-black overflow-scroll max-h-[64vh] overflow-y-scroll">
 						<table className="min-w-full divide-y divide-gray-200">
-							<thead className="bg-slate-700">
+							<thead className="dark:bg-slate-700 bg-slate-500">
 								<tr className='divide-x divide-slate-600'>
 									{allKeys.map((key) => (
 										<th key={key} className='p-3 text-left text-s font-medium text-white uppercase tracking-wider'>{key}</th>
