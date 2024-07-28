@@ -13,3 +13,17 @@ export type EditableColors = {
 	glyphColor: string,
 	perforationColor: string;
 };
+
+/**
+ * Parsed page data format.
+ */
+export type ParsedPageData = {
+	playerName: string;
+	clubName: string;
+	positions: {
+		[key: string]: {
+			id: string;
+			/* flag: string; */
+		};
+	};
+};
