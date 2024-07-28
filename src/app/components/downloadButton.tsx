@@ -1,8 +1,9 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { IoMdDownload } from "react-icons/io";
 import { InputData, EditableColors } from '@/app/utils/types';
 import { createRoot } from 'react-dom/client';
 import TransferGenerator from '@/app/components/transferGenerator';
+import { IoMdDownload } from "react-icons/io";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 interface DownloadButtonProps {
 	editableData: InputData[];
@@ -14,6 +15,7 @@ interface DownloadButtonProps {
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPage, font, fontSize, colors }) => {
 	const [isShiftPressed, setIsShiftPressed] = useState(false);
+	const [isDownloading, setIsDownloading] = useState(false);
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => setIsShiftPressed(e.shiftKey);
@@ -88,36 +90,46 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 	}, []);
 
 	const handleDownload = useCallback(async () => {
-		let svgToDownload: string;
+		setIsDownloading(true);
+		try {
+			let svgToDownload: string;
 
-		if (isShiftPressed) {
-			// Download only the current transfer
-			svgToDownload = await generateSVG(editableData[currentPage]);
-		} else {
-			// Download all transfers
-			const allSVGs = await Promise.all(editableData.map(generateSVG));
-			svgToDownload = arrangeInGrid(allSVGs);
+			if (isShiftPressed) {
+				// Download only the current transfer
+				svgToDownload = await generateSVG(editableData[currentPage]);
+			} else {
+				// Download all transfers
+				const allSVGs = await Promise.all(editableData.map(generateSVG));
+				svgToDownload = arrangeInGrid(allSVGs);
+			}
+			const randomString = window.crypto.randomUUID().substring(0, 4);
+			const blob = new Blob([svgToDownload], { type: 'image/svg+xml' });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = isShiftPressed ? `transfer_${currentPage + 1}.svg` : `all_${font}_transfers_${randomString}.svg`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.log(error);
+			setIsDownloading(false);
+		} finally {
+			setIsDownloading(false);
 		}
-		const randomString = window.crypto.randomUUID().substring(0, 4);
-		const blob = new Blob([svgToDownload], { type: 'image/svg+xml' });
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = isShiftPressed ? `transfer_${currentPage + 1}.svg` : `all_${font}_transfers_${randomString}.svg`;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		URL.revokeObjectURL(url);
+
 	}, [isShiftPressed, editableData, currentPage, generateSVG, arrangeInGrid, font]);
 
 	return (
 		<button
 			onClick={handleDownload}
-			className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500"
+			disabled={isDownloading}
+			className={`p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 leading-none ${isDownloading ? 'opacity-50 cursor-not-allowed' : ''}`}
 			title={isShiftPressed ? 'Download current transfer as SVG' : 'Download all transfers as SVG (Hold shift for current)'}
 		>
-			<IoMdDownload className='text-xl' />
-			{isShiftPressed ? 'Current' : 'All'}
+			{isDownloading ? (<AiOutlineLoading3Quarters className="animate-spin text-xl" />) : (<IoMdDownload className='text-xl' />)}
+			{isDownloading ? 'Downloading' : (isShiftPressed ? 'Current' : 'All')}
 		</button>
 	);
 };
