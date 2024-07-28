@@ -49,7 +49,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 				});
 			};
 
-			const createTextGroup = async (x: number, y: number, colorCounters: boolean, inputText: string, isCondensed: boolean = false) => {
+			const createTextGroup = async (x: number, y: number, colorCounters: boolean, inputText: string, isCondensed: boolean = false): Promise<opentype.BoundingBox> => {
 				const dynamicFontSize = isCondensed ? Math.min(Math.max(fontSize, 10), 26) : fontSize;
 				const path = dynamicFont.getPath(inputText, x, y, dynamicFontSize);
 				let currentPath = new Path();
@@ -80,25 +80,42 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 				if (currentPath.commands.length > 0 && pathStart) {
 					addPathToSVG(currentPath, pathStart, colorCounters);
 				}
+
+				return path.getBoundingBox();
 			};
 
 			// Create identifier text
 			dynamicFont = await opentype.load('fonts/condensed.ttf');
 			const identifierText = `${assetName ? assetName : 'N/A'}${teamName ? " - " + teamName : ''}`;
-			createTextGroup(0, 10, false, identifierText, true);
+			const identifierBBox = await createTextGroup(0, 10, false, identifierText, true);
 
-			// Create 4 duplicates and stack below each other
+			// Create ID text
 			dynamicFont = await opentype.load(font === 'NIKE' ? 'fonts/nike.ttf' : 'fonts/puma.ttf');
 			const spacing = '            ';
 			const verticalSpacing = fontSize * 1.5;
 			const text = `${idLeftOutside ? idLeftOutside + spacing : ''}${idLeftInside ? idLeftInside + spacing : ''}${idRightOutside ? idRightOutside + spacing : ''}${idRightInside ? idRightInside : ''}`;
 
-			[0, 1, 2, 3].forEach(i => {
-				createTextGroup(90, (10 + fontSize) + (i * verticalSpacing), text === "" ? false : true, text === "" ? "N/A" : text);
-			});
+			// Add x duplicates and stack below each other
+			let textBBox: opentype.BoundingBox | undefined;
+			for (let i = 0; i < 4; i++) {
+				const bbox = await createTextGroup(90, (20 + fontSize) + (i * verticalSpacing), text !== "", text || "N/A");
+				if (i === 0) textBBox = bbox;
+			}
 
-			// Add padding
-			const paddingX = 90;
+			////////// RECT PADDING CALCULATIONS //////////
+			const identifierWidth = identifierBBox.x2 - identifierBBox.x1;
+			let requiredWidth: number;
+
+			if (textBBox) {
+				const idTextRightEdge = textBBox.x2 + 90;
+				requiredWidth = Math.max(idTextRightEdge, identifierWidth + 10);
+			} else {
+				// Fallback in case text is ever empty for some ungodly reason
+				requiredWidth = identifierWidth + 30;
+			}
+
+			// Add up
+			const paddingX = requiredWidth - (maxX - minX);
 			const paddingY = 10;
 			minX -= paddingY;
 			minY -= paddingY;
