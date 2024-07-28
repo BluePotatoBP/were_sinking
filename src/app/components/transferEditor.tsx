@@ -1,24 +1,28 @@
 import React, { useState, useCallback, useEffect, Suspense, memo } from 'react';
-import DownloadButton from '@/app/components/downloadButton';
 import { useDebounce } from '@/app/utils/hooks';
-import { InputData, EditableColors } from '@/app/utils/types';
+import { InputData, EditableColors, ParsedPageData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
+import Parser from '@/app/components/pageParser';
 
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { FaChevronLeft, FaChevronRight, FaTrashCan } from "react-icons/fa6";
 import { FaPlusSquare } from 'react-icons/fa';
+import { HiOutlineCog } from "react-icons/hi";
+import { MdOutlineExitToApp } from "react-icons/md";
 
+const DownloadButton = React.lazy(() => import('@/app/components/downloadButton'));
 const TransferGenerator = React.lazy(() => import('@/app/components/transferGenerator'));
 
 interface TransferEditorProps {
 	data: InputData[];
 	tabType: "INDIVIDUAL" | "MASTERFILE";
-	onDataUpdate?: React.Dispatch<React.SetStateAction<InputData[]>>;
+	onDataUpdate: React.Dispatch<React.SetStateAction<InputData[]>>;
 }
 
 const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUpdate }) => {
 	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
 	const [fontSize, setFontSize] = useState<number>(26);
 	const [currentPage, setCurrentPage] = useState(0);
+	const [settingsMenuOpen, toggleSettingsMenu] = useState(false);
 	const [colors, setColors] = useState<EditableColors>({
 		counterColor: '#0000ff',
 		glyphColor: '#ff0000',
@@ -27,14 +31,19 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 
 	useEffect(() => {
 		setCurrentPage(0);
+	}, [tabType]);
+
+	useEffect(() => {
 		setFontSize(font === "NIKE" ? 26 : 32);
 	}, [tabType, font]);
 
-	const handlePrevPage = useCallback(() => {
+	const handleSettingsToggle = useCallback(() => toggleSettingsMenu(!settingsMenuOpen), [settingsMenuOpen]);
+
+	const handlePrevPage = useCallback(async () => {
 		setCurrentPage(prev => Math.max(0, prev - 1));
 	}, []);
 
-	const handleNextPage = useCallback(() => {
+	const handleNextPage = useCallback(async () => {
 		setCurrentPage(prev => Math.min(data.length - 1, prev + 1));
 	}, [data.length]);
 
@@ -49,15 +58,20 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 	}, [currentPage, onDataUpdate]);
 
 	const handleAddNew = useCallback(() => {
-		if (onDataUpdate) {
+		onDataUpdate(prevData => [...prevData, individualTemplate]);
+		setCurrentPage(prevData => prevData + 1);
+	}, [onDataUpdate]);
+
+	const handleRemove = useCallback(() => {
+		if (data.length > 1) {
 			onDataUpdate(prevData => {
 				const newData = [...prevData];
-				newData.push(individualTemplate);
+				newData.splice(currentPage, 1);
 				return newData;
 			});
-			setCurrentPage(prevPage => prevPage + 1);
+			setCurrentPage(prevPage => Math.max(0, prevPage - 1));
 		}
-	}, [onDataUpdate]);
+	}, [onDataUpdate, currentPage, data.length]);
 
 	const handleColorChange = useDebounce((colorType: string, value: string) => {
 		setColors(prevColors => ({
@@ -67,6 +81,30 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 	}, 200);
 
 	const currentItem = data[currentPage];
+
+	const handleParseCompletion = useCallback((parsedData: ParsedPageData) => {
+		if (onDataUpdate) {
+			onDataUpdate(prevData => {
+				const newData = [...prevData];
+				const updatedItem = { ...newData[currentPage] };
+
+				// Update fields based on parsed data
+				updatedItem["Asset Name"] = parsedData.playerName;
+				updatedItem["Team"] = parsedData.clubName;
+
+				// Update IDs
+				Object.entries(parsedData.positions).forEach(([position, { id }]) => {
+					const [side, inOut] = position.split(' ');
+					const key = `ID ${side} ${inOut}`;
+					updatedItem[key] = id;
+				});
+
+				newData[currentPage] = updatedItem;
+				console.log(newData);
+				return newData;
+			});
+		}
+	}, [currentPage, onDataUpdate]);
 
 	// Page navigation via arrow keys
 	useEffect(() => {
@@ -91,21 +129,57 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 				<div className="editor-container flex flex-col md:flex-row gap-4 justify-between 2xl:max-h-[30vh]">
 					{/* ID editor */}
 					<div className="id-editor flex flex-col gap-2 dark:bg-slate-700 bg-slate-300 p-2 rounded-lg w-full overflow-y-scroll">
-						{Object.entries(currentItem).map(([key, value]) => (
-							<div key={key} className="flex flex-row justify-between items-center leading-none border-solid border-2 rounded-lg dark:border-slate-600 border-slate-200 p-2 hover:border-dashed">
-								<label className="text-white font-bold">{key.toUpperCase()}</label>
-								<input type="text" value={value as string} onChange={(e) => handleInputChange(key, e.target.value)} className="p-2 dark:bg-slate-500 bg-slate-200 dark:text-slate-300 text-slate-400 rounded w-3/5" />
+						{Object.keys(individualTemplate).map((field) => (
+							<div key={field} className="flex flex-row justify-between items-center leading-none border-solid border-2 rounded-lg dark:border-slate-600 border-slate-200 p-2 hover:border-dashed">
+								<label className="text-white font-bold">{field.toUpperCase()}</label>
+								<input
+									type="text"
+									value={currentItem[field] || ""}
+									onChange={(e) => handleInputChange(field, e.target.value)}
+									className="p-2 dark:bg-slate-500 bg-slate-200 dark:text-slate-300 text-slate-400 rounded w-3/5"
+								/>
 							</div>
 						))}
 					</div>
 					{/* Colors and font */}
 					<div className="colors-editor flex flex-row md:flex-col gap-4 items-center justify-between dark:bg-slate-700 bg-slate-300 p-4 rounded-lg">
-						<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
-						<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
-						<input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" className="p-2 w-[3.75rem]" min={10} />
-						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
-						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
-						<input type="color" className='cursor-pointer w-[3.75rem]' value={colors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
+						<div className="font-buttons flex flex-row md:flex-col gap-4 items-center">
+							<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+							<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+						</div>
+						<div className="multi-action-buttons flex flex-row md:flex-col gap-4 items-center">
+							<Parser onParseComplete={handleParseCompletion} />
+							<button onClick={handleSettingsToggle} className="settings-button dark:bg-slate-600 bg-slate-400 rounded-lg py-4 leading-none">
+								<HiOutlineCog className='text-2xl dark:text-white text-slate-600 w-[3.75rem] ' />
+							</button>
+						</div>
+						{settingsMenuOpen && (
+							<div className="settings-popup fixed top-0 left-0 w-full h-full dark:bg-slate-800/60 bg-slate-500/60 z-40">
+								<div className="popup-container fixed flex top-1/4 md:left-1/4 left-[10%] dark:bg-slate-600 bg-slate-400 p-4 md:w-1/2 w-[80%] h-1/2 rounded-2xl gap-4 pointer-events-auto z-50">
+									<div className="flex flex-col justify-evenly p-4 w-full rounded-lg dark:bg-slate-700 bg-slate-300 text-slate-400 text-base font-mono uppercase text-start">
+										<div className="flex flex-col">
+											<label htmlFor='font-size'>Font Size</label>
+											<input type="number" id='font-size' className="p-2 w-full h-8 dark:bg-slate-600 bg-slate-400 text-slate-200 rounded-md" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" min={10} />
+										</div>
+										<div className="flex flex-col">
+											<label htmlFor='glyph-color'>Glyph Color</label>
+											<input type="color" id='glyph-color' className='cursor-pointer w-full h-8' value={colors.glyphColor} onChange={(e) => handleColorChange("glyphColor", e.target.value)} />
+										</div>
+										<div className="flex flex-col">
+											<label htmlFor='counter-color'>Counter Color</label>
+											<input type="color" id='counter-color' className='cursor-pointer w-full h-8' value={colors.counterColor} onChange={(e) => handleColorChange("counterColor", e.target.value)} />
+										</div>
+										<div className="flex flex-col">
+											<label htmlFor='rect-color'>Border Color</label>
+											<input type="color" id='rect-color' className='cursor-pointer w-full h-8' value={colors.perforationColor} onChange={(e) => handleColorChange("perforationColor", e.target.value)} />
+										</div>
+									</div>
+									<div className="close-btn cursor-pointer p-4 dark:bg-slate-700 bg-slate-300 rounded-lg flex items-center text-center" onClick={handleSettingsToggle}>
+										<MdOutlineExitToApp className='dark:text-white text-slate-600 text-2xl relative right-0 top-0' />
+									</div>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 
@@ -123,19 +197,23 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 						<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg">
 							<FaChevronLeft />
 						</button>
-						<span className="dark:text-white text-slate-600">{`${currentPage + 1} of ${data.length}`}</span>
+						<span className="dark:text-white text-slate-600">{`${currentPage + 1}/${data.length}`}</span>
 						<button onClick={handleNextPage} disabled={currentPage === data.length - 1} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg">
 							<FaChevronRight />
 						</button>
 					</div>
 					{ /* Download and new button */}
 					<div className="action-buttons flex flex-row gap-4">
-						{tabType === "INDIVIDUAL" && // FIXME: wont add new transfer if on masterfile page
-							(
+						{
+							<div className='action-buttons flex flex-row gap-4'>
+								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500" title='Remove current Transfer' onClick={handleRemove}>
+									<FaTrashCan className='leading-none text-xl' />
+								</button>
 								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500" title='Add new Transfer' onClick={handleAddNew}>
 									<FaPlusSquare className='leading-none text-xl' />
 								</button>
-							)}
+							</div>
+						}
 						<DownloadButton editableData={data} currentPage={currentPage} font={font} fontSize={fontSize} colors={colors} />
 					</div>
 				</div>
@@ -155,7 +233,6 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 							file to proceed.
 						</div>
 				}
-
 			</div>
 		);
 	}
