@@ -32,6 +32,7 @@ const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = fal
 						<table className="min-w-full divide-y divide-gray-200">
 							<thead className="dark:bg-slate-700 bg-slate-500">
 								<tr className='divide-x divide-slate-600'>
+									<th className='p-4 text-center text-s font-medium text-white uppercase tracking-wider'>#</th>
 									{allKeys.map((key) => (
 										<th key={key} className='p-3 text-left text-s font-medium text-white uppercase tracking-wider'>{key}</th>
 									))}
@@ -40,6 +41,7 @@ const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = fal
 							<tbody className='bg-white'>
 								{data.map((row: InputData, rowIndex) => (
 									<tr key={rowIndex} className='even:bg-slate-200 divide-x divide-slate-300'>
+										<td className={`${compactState ? 'py-[0.1rem]' : 'py-2'} px-4 whitespace-nowrap text-center`}>{rowIndex + 1}</td>
 										{allKeys.map((key, colIndex) => (
 											<td key={`${rowIndex}-${colIndex}`} className={`${compactState ? 'py-[0.1rem]' : 'py-2'} px-4 whitespace-nowrap`}>
 												{
