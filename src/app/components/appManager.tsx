@@ -3,9 +3,9 @@ import XlsxTableParser from "@/app/components/xlsxTableParser";
 import TransferEditor from "@/app/components/transferEditor";
 import { InputData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
-
 import { ChangeEvent, useState } from "react";
 import { WorkBook, WorkSheet, read, utils } from "xlsx";
+
 import { MdFormatLineSpacing } from "react-icons/md";
 import { TbLayoutSidebarLeftExpandFilled, TbLayoutSidebarRightExpandFilled } from "react-icons/tb";
 
@@ -36,11 +36,15 @@ const AppManager: React.FC = () => {
 
 				const filteredData: InputData[] = parsedData.map((item) => {
 					const filteredItem: InputData = {};
-					Object.entries(item).forEach(([key, value]) => {
-						const matchedValue = value.toString().match(regexStr)?.join(' ');
-						if (matchedValue) {
-							// Convert to number if possible, otherwise keep as string
-							filteredItem[key] = isNaN(Number(matchedValue)) ? matchedValue : Number(matchedValue);
+					Object.keys(individualTemplate).forEach((field) => {
+						const value = item[field];
+						if (value !== undefined) {
+							const matchedValue = value.toString().match(regexStr)?.join(' ');
+							if (matchedValue) {
+								filteredItem[field] = isNaN(Number(matchedValue)) ? matchedValue : Number(matchedValue);
+							}
+						} else {
+							filteredItem[field] = ""; // Set empty string for missing fields
 						}
 					});
 					return filteredItem;
@@ -50,6 +54,16 @@ const AppManager: React.FC = () => {
 			};
 		}
 	};
+
+	const handleDataUpdate = (newDataOrUpdater: React.SetStateAction<InputData[]>) => {
+		if (currentTab === "INDIVIDUAL") {
+			setIndividualTransfers(newDataOrUpdater);
+		} else {
+			setFileData(newDataOrUpdater);
+		}
+	};
+
+	const currentData = currentTab === "INDIVIDUAL" ? individualTransfers : fileData;
 
 	return (
 		<div className="manager-container flex lg:flex-row flex-col max-w-[90vw] md:w-full gap-4">
@@ -66,7 +80,7 @@ const AppManager: React.FC = () => {
 						MASTERFILE
 					</button>
 				</div>
-				<TransferEditor data={currentTab === "INDIVIDUAL" ? individualTransfers : fileData} tabType={currentTab} onDataUpdate={currentTab === "INDIVIDUAL" ? setIndividualTransfers : undefined} />
+				<TransferEditor data={currentData} tabType={currentTab} onDataUpdate={handleDataUpdate} />
 			</div>
 			<div className={`right flex flex-col gap-4 w-full ${isExpanded ? 'lg:max-w-[50vw]' : 'lg:max-w-[32vw] 2xl:max-w-[22vw]'}`}>
 				<div className="top-container flex flex-row justify-between items-center dark:bg-slate-800 bg-slate-400 p-4 rounded-2xl">
