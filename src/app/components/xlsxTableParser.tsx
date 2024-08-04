@@ -5,10 +5,9 @@ import { InputData } from '@/app/utils/types';
 interface XlsxTableParserProps {
 	data: InputData[];
 	isCompact?: boolean;
-	isExpanded?: boolean;
 }
 
-const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = false, isExpanded = true }) => {
+const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = false }) => {
 	const [compactState, setCompactState] = useState(isCompact);
 
 	useEffect(() => {
@@ -28,7 +27,7 @@ const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = fal
 		<div className={`parser-container flex flex-col gap-4 self-end w-full`}>
 			{data.length > 0 && (
 				<div className="rounded-2xl p-4 dark:bg-slate-800 bg-slate-400">
-					<div className="rounded-lg text-black overflow-scroll max-h-[64vh] overflow-y-scroll">
+					<div className="rounded-lg text-black overflow-auto max-h-[64vh] scroll-smooth">
 						<table className="min-w-full divide-y divide-gray-200">
 							<thead className="dark:bg-slate-700 bg-slate-500">
 								<tr className='divide-x divide-slate-600'>
@@ -61,5 +60,5 @@ const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = fal
 };
 
 export default React.memo(XlsxTableParser, (prevProps, nextProps) => {
-	return prevProps.data === nextProps.data && prevProps.isCompact === nextProps.isCompact && prevProps.isExpanded === nextProps.isExpanded;
+	return prevProps.data === nextProps.data && prevProps.isCompact === nextProps.isCompact;
 });
