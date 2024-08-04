@@ -2,15 +2,16 @@ import React, { useState, useCallback, useEffect, Suspense, memo } from 'react';
 import { useDebounce } from '@/app/utils/hooks';
 import { InputData, EditableColors, ParsedPageData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
-import Parser from '@/app/components/transfers/pageParser';
 
-import { FaChevronLeft, FaChevronRight, FaTrashCan } from "react-icons/fa6";
+import { FaTrashCan } from "react-icons/fa6";
 import { FaPlusSquare } from 'react-icons/fa';
 import { HiOutlineCog } from "react-icons/hi";
 import { MdOutlineExitToApp } from "react-icons/md";
 
+const Parser = React.lazy(() => import('@/app/components/transfers/pageParser'));
 const DownloadButton = React.lazy(() => import('@/app/components/transfers/downloadButton'));
 const TransferGenerator = React.lazy(() => import('@/app/components/transfers/transferGenerator'));
+const PageNavigation = React.lazy(() => import('@/app/components/ui/pageNavigation'));
 
 interface TransferEditorProps {
 	data: InputData[];
@@ -35,17 +36,9 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 
 	useEffect(() => {
 		setFontSize(font === "NIKE" ? 26 : 32);
-	}, [tabType, font]);
+	}, [font]);
 
 	const handleSettingsToggle = useCallback(() => toggleSettingsMenu(!settingsMenuOpen), [settingsMenuOpen]);
-
-	const handlePrevPage = useCallback(async () => {
-		setCurrentPage(prev => Math.max(0, prev - 1));
-	}, []);
-
-	const handleNextPage = useCallback(async () => {
-		setCurrentPage(prev => Math.min(data.length - 1, prev + 1));
-	}, [data.length]);
 
 	const handleInputChange = useCallback((key: string, value: string | number) => {
 		if (onDataUpdate) {
@@ -57,12 +50,12 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 		}
 	}, [currentPage, onDataUpdate]);
 
-	const handleAddNew = useCallback(() => {
+	const handleAddNewTransfer = useCallback(() => {
 		onDataUpdate(prevData => [...prevData, individualTemplate]);
-		setCurrentPage(prevData => prevData + 1);
-	}, [onDataUpdate]);
+		setCurrentPage(data.length);
+	}, [onDataUpdate, data.length]);
 
-	const handleRemove = useCallback(() => {
+	const handleDeleteTransfer = useCallback(() => {
 		if (data.length > 1) {
 			onDataUpdate(prevData => {
 				const newData = [...prevData];
@@ -79,8 +72,6 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 			[colorType]: value
 		}));
 	}, 200);
-
-	const currentItem = data[currentPage];
 
 	const handleParseCompletion = useCallback((parsedData: ParsedPageData) => {
 		if (onDataUpdate) {
@@ -106,25 +97,11 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 		}
 	}, [currentPage, onDataUpdate]);
 
-	// Page navigation via arrow keys
-	useEffect(() => {
-		const handleKeypress = (e: KeyboardEvent) => {
-			const isInput = document.activeElement instanceof HTMLInputElement;
-			if (isInput) return;
-			if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && currentItem) {
-				if (e.key === 'ArrowLeft') handlePrevPage();
-				if (e.key === 'ArrowRight') handleNextPage();
-			}
-		};
-
-		window.addEventListener('keydown', handleKeypress);
-
-		return () => window.removeEventListener('keydown', handleKeypress);
-	}, [handlePrevPage, handleNextPage, currentItem]);
+	const currentItem = data[currentPage];
 
 	if (currentItem) {
 		return (
-			<div className="p-4 flex flex-col rounded-2xl text-black dark:bg-slate-800 bg-slate-400 gap-4 min-w-[40vw] max-w-full lg:w-[30vw] lg:max-h-[80vh] justify-evenly lg:overflow-y-auto text-xs 2xl:text-base">
+			<div className="p-4 flex flex-col rounded-2xl text-black dark:bg-slate-800 bg-slate-400 gap-4 min-w-[40vw] w-full lg:max-h-[80vh] justify-evenly lg:overflow-y-auto text-xs 2xl:text-base">
 				{/* Editor controls */}
 				<div className="editor-container flex flex-col md:flex-row gap-4 justify-between 2xl:max-h-[30vh]">
 					{/* ID editor */}
@@ -159,7 +136,7 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 									<div className="flex flex-col justify-evenly p-4 w-full rounded-lg dark:bg-slate-700 bg-slate-300 text-slate-400 text-base font-mono uppercase text-start">
 										<div className="flex flex-col">
 											<label htmlFor='font-size'>Font Size</label>
-											<input type="number" id='font-size' className="p-2 w-full h-8 dark:bg-slate-600 bg-slate-400 text-slate-200 rounded-md" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} placeholder="Font size" min={10} />
+											<input type="number" id='font-size' className="p-2 w-full h-8 dark:bg-slate-600 bg-slate-400 text-slate-200 rounded-md" value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value))} placeholder="Font size" min={10} />
 										</div>
 										<div className="flex flex-col">
 											<label htmlFor='glyph-color'>Glyph Color</label>
@@ -192,29 +169,21 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 
 				{/* Controls */}
 				<div className="controls flex justify-between items-center gap-4">
-					{/* Page buttons */}
-					<div className="control-buttons flex items-center gap-4 dark:text-white text-slate-600">
-						<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg cursor-pointer hover:bg-slate-500 transition-colors">
-							<FaChevronLeft />
-						</button>
-						<span className="dark:text-white text-slate-600">{`${currentPage + 1}/${data.length}`}</span>
-						<button onClick={handleNextPage} disabled={currentPage === data.length - 1} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg cursor-pointer hover:bg-slate-500 transition-colors">
-							<FaChevronRight />
-						</button>
-					</div>
-					{ /* Download and new button */}
+					{/* Navigation */}
+					<PageNavigation updatePage={page => setCurrentPage(page)} pageCount={data.length} currentPage={currentPage} />
+					{ /* Download, Add New, Delete */}
 					<div className="action-buttons flex flex-row gap-4">
 						{
 							<div className='action-buttons flex flex-row gap-4'>
-								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 transition-colors" title='Remove current Transfer' onClick={handleRemove}>
+								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 transition-colors" title='Remove current Transfer' onClick={handleDeleteTransfer}>
 									<FaTrashCan className='leading-none text-xl' />
 								</button>
-								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 transition-colors" title='Add new Transfer' onClick={handleAddNew}>
+								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 transition-colors" title='Add new Transfer' onClick={handleAddNewTransfer}>
 									<FaPlusSquare className='leading-none text-xl' />
 								</button>
 							</div>
 						}
-						<DownloadButton editableData={data} currentPage={currentPage} font={font} fontSize={fontSize} colors={colors} />
+						<DownloadButton editableData={data} font={font} fontSize={fontSize} colors={colors} />
 					</div>
 				</div>
 			</div>
