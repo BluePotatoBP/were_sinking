@@ -27,7 +27,7 @@ const FileSelectorButton: React.FC<FileSelectorButtonProps> = ({ onFileSelect })
 				 * It's actually reversed, match unicode characters
 				 * like letters + most symbols and discard everything else (emoji)
 				 */
-				const regexStr = /[\p{L}\d!@#$%^&*()?.,<>\/\\'":;+_\-\+~`\|{}\[\]=]+/u;
+				const regexStr = /[\p{L}\d!@#$%^&*()?.,<>\/\\'":;+_\-\+~`\|{}\[\]=]+/ug;
 
 				const filteredData: InputData[] = parsedData.map((item) => {
 					const filteredItem: InputData = {};
@@ -36,7 +36,7 @@ const FileSelectorButton: React.FC<FileSelectorButtonProps> = ({ onFileSelect })
 						if (value !== undefined) {
 							const matchedValue = value.toString().match(regexStr)?.join(' ');
 							if (matchedValue) {
-								filteredItem[field] = isNaN(Number(matchedValue)) ? matchedValue : Number(matchedValue);
+								filteredItem[field] = isNaN(parseInt(matchedValue)) ? matchedValue : parseInt(matchedValue);
 							}
 						} else {
 							filteredItem[field] = ""; // Set empty string for missing fields
