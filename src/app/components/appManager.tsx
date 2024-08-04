@@ -1,6 +1,6 @@
 'use client';
-import XlsxTableParser from "@/app/components/UI/xlsxTableParser";
-import TransferEditor from "@/app/components/UI/transferEditor";
+import XlsxTableParser from "@/app/components/ui/xlsxTableParser";
+import TransferEditor from "@/app/components/ui/transferEditor";
 import FileSelectorButton from "@/app/components/transfers/fileSelectorButton";
 
 import { InputData } from '@/app/utils/types';
@@ -8,30 +8,29 @@ import { individualTemplate } from '@/app/utils/misc';
 import { useCallback, useState } from "react";
 
 import { MdFormatLineSpacing } from "react-icons/md";
-import { TbLayoutSidebarLeftExpandFilled, TbLayoutSidebarRightExpandFilled } from "react-icons/tb";
 
 const AppManager: React.FC = () => {
 
 	const [isCompact, setIsCompact] = useState<boolean>(false);
-	const [isExpanded, setIsExpanded] = useState<boolean>(true);
 	const [fileData, setFileData] = useState<InputData[]>([]);
 	const [individualTransfers, setIndividualTransfers] = useState<InputData[]>([individualTemplate]);
 	const [currentTab, setCurrentTab] = useState<"INDIVIDUAL" | "MASTERFILE">("INDIVIDUAL");
 
 	const handleCompactClick = () => setIsCompact(!isCompact);
-	const handleExpand = () => setIsExpanded(!isExpanded);
 	const handleDataUpdate = (newDataOrUpdater: React.SetStateAction<InputData[]>) =>
 		currentTab === "INDIVIDUAL" ? setIndividualTransfers(newDataOrUpdater) : setFileData(newDataOrUpdater);
 
 	const handleFileSelect = useCallback((data: InputData[]) => {
 		setCurrentTab("MASTERFILE");
-		// Apparently this is necessary to ensure the state updates
+		// Apparently this is necessary to ensure the state updates, thanks random stack overflow person
 		setTimeout(() => {
 			setFileData(data);
 		}, 0);
 	}, []);
 
 	const currentData = currentTab === "INDIVIDUAL" ? individualTransfers : fileData;
+
+	const fileHint = (currentTab === "MASTERFILE") && (fileData.length <= 0);
 
 	return (
 		<div className="manager-container flex lg:flex-row flex-col max-w-[90vw] md:w-full gap-4">
@@ -50,16 +49,15 @@ const AppManager: React.FC = () => {
 				</div>
 				<TransferEditor data={currentData} tabType={currentTab} onDataUpdate={handleDataUpdate} />
 			</div>
-			<div className={`right flex flex-col gap-4 w-full ${isExpanded ? 'lg:max-w-[50vw]' : 'lg:max-w-[17vw] 2xl:max-w-[22vw]'}`}>
+			<div className={`right flex flex-col gap-4 w-auto min-w-[7.5rem]`}>
 				<div className="top-container flex flex-row justify-between items-center dark:bg-slate-800 bg-slate-400 p-4 rounded-2xl">
-					<div className="input-container dark:text-white text-slate-600">
+					<div className={`input-container dark:text-white text-slate-600 ${fileHint ? 'animate-pulse' : ''}`}>
 						<FileSelectorButton onFileSelect={handleFileSelect} />
 					</div>
 					<div className="controls-container p-0 m-0 leading-none">
 						{fileData && Array.isArray(fileData) ? fileData.length > 0 && (
 							<div className="table-controls flex gap-4">
 								<button onClick={handleCompactClick}><MdFormatLineSpacing className="text-white" /></button>
-								<button onClick={handleExpand} className="text-white lg:flex hidden">{isExpanded ? <TbLayoutSidebarLeftExpandFilled /> : <TbLayoutSidebarRightExpandFilled />}</button>
 							</div>
 						) : null}
 					</div>
