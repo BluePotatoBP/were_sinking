@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { InputData, EditableColors } from '@/app/utils/types';
 import { createRoot } from 'react-dom/client';
-import TransferGenerator from '@/app/components/transferGenerator';
+import TransferGenerator from '@/app/components/transfers/transferGenerator';
 import { IoMdDownload } from "react-icons/io";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 

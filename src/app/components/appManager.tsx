@@ -1,7 +1,7 @@
 'use client';
-import XlsxTableParser from "@/app/components/xlsxTableParser";
-import TransferEditor from "@/app/components/transferEditor";
-import FileSelectorButton from "@/app/components/fileSelectorButton";
+import XlsxTableParser from "@/app/components/UI/xlsxTableParser";
+import TransferEditor from "@/app/components/UI/transferEditor";
+import FileSelectorButton from "@/app/components/transfers/fileSelectorButton";
 
 import { InputData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';

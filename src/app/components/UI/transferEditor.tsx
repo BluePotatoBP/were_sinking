@@ -2,15 +2,15 @@ import React, { useState, useCallback, useEffect, Suspense, memo } from 'react';
 import { useDebounce } from '@/app/utils/hooks';
 import { InputData, EditableColors, ParsedPageData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
-import Parser from '@/app/components/pageParser';
+import Parser from '@/app/components/transfers/pageParser';
 
 import { FaChevronLeft, FaChevronRight, FaTrashCan } from "react-icons/fa6";
 import { FaPlusSquare } from 'react-icons/fa';
 import { HiOutlineCog } from "react-icons/hi";
 import { MdOutlineExitToApp } from "react-icons/md";
 
-const DownloadButton = React.lazy(() => import('@/app/components/downloadButton'));
-const TransferGenerator = React.lazy(() => import('@/app/components/transferGenerator'));
+const DownloadButton = React.lazy(() => import('@/app/components/transfers/downloadButton'));
+const TransferGenerator = React.lazy(() => import('@/app/components/transfers/transferGenerator'));
 
 interface TransferEditorProps {
 	data: InputData[];
