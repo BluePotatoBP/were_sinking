@@ -124,11 +124,11 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 
 	if (currentItem) {
 		return (
-			<div className="p-4 flex flex-col rounded-2xl text-black dark:bg-slate-800 bg-slate-400 gap-4 min-w-[40vw] max-w-full lg:w-[30vw] lg:max-h-[80vh] justify-evenly lg:overflow-y-scroll text-xs 2xl:text-base">
+			<div className="p-4 flex flex-col rounded-2xl text-black dark:bg-slate-800 bg-slate-400 gap-4 min-w-[40vw] max-w-full lg:w-[30vw] lg:max-h-[80vh] justify-evenly lg:overflow-y-auto text-xs 2xl:text-base">
 				{/* Editor controls */}
 				<div className="editor-container flex flex-col md:flex-row gap-4 justify-between 2xl:max-h-[30vh]">
 					{/* ID editor */}
-					<div className="id-editor flex flex-col gap-2 dark:bg-slate-700 bg-slate-300 p-2 rounded-lg w-full overflow-y-scroll">
+					<div className="id-editor flex flex-col gap-2 dark:bg-slate-700 bg-slate-300 p-2 rounded-lg w-full overflow-y-auto">
 						{Object.keys(individualTemplate).map((field) => (
 							<div key={field} className="flex flex-row justify-between items-center leading-none border-solid border-2 rounded-lg dark:border-slate-600 border-slate-200 p-2 hover:border-dashed">
 								<label className="text-white font-bold">{field.toUpperCase()}</label>
@@ -149,7 +149,7 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 						</div>
 						<div className="multi-action-buttons flex flex-row md:flex-col gap-4 items-center">
 							<Parser onParseComplete={handleParseCompletion} />
-							<button onClick={handleSettingsToggle} className="settings-button dark:bg-slate-600 bg-slate-400 rounded-lg py-4 leading-none">
+							<button onClick={handleSettingsToggle} className="settings-button dark:bg-slate-600 bg-slate-400 rounded-lg py-4 leading-none hover:bg-slate-500 transition-colors">
 								<HiOutlineCog className='text-2xl dark:text-white text-slate-600 w-[3.75rem] ' />
 							</button>
 						</div>
@@ -184,7 +184,7 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 				</div>
 
 				{/* Transfer preview */}
-				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 overflow-scroll rounded-lg min-h-[25vh] max-h-[25vh]">
+				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 rounded-lg lg:min-h-[25vh] lg:max-h-[25vh]">
 					<Suspense fallback={<div className='text-2xl font-bold'>Loading...</div>}>
 						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={colors} forDownload={false} />
 					</Suspense>
@@ -194,11 +194,11 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 				<div className="controls flex justify-between items-center gap-4">
 					{/* Page buttons */}
 					<div className="control-buttons flex items-center gap-4 dark:text-white text-slate-600">
-						<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg">
+						<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg cursor-pointer hover:bg-slate-500 transition-colors">
 							<FaChevronLeft />
 						</button>
 						<span className="dark:text-white text-slate-600">{`${currentPage + 1}/${data.length}`}</span>
-						<button onClick={handleNextPage} disabled={currentPage === data.length - 1} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg">
+						<button onClick={handleNextPage} disabled={currentPage === data.length - 1} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg cursor-pointer hover:bg-slate-500 transition-colors">
 							<FaChevronRight />
 						</button>
 					</div>
@@ -206,10 +206,10 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 					<div className="action-buttons flex flex-row gap-4">
 						{
 							<div className='action-buttons flex flex-row gap-4'>
-								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500" title='Remove current Transfer' onClick={handleRemove}>
+								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 transition-colors" title='Remove current Transfer' onClick={handleRemove}>
 									<FaTrashCan className='leading-none text-xl' />
 								</button>
-								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500" title='Add new Transfer' onClick={handleAddNew}>
+								<button className="p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 transition-colors" title='Add new Transfer' onClick={handleAddNew}>
 									<FaPlusSquare className='leading-none text-xl' />
 								</button>
 							</div>
