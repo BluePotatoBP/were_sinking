@@ -6,7 +6,7 @@ const Navbar = () => {
 					&#9863;
 				</div>
 				<div className="version-number">
-					v0.5
+					v0.6
 				</div>
 			</div>
 		</nav>
