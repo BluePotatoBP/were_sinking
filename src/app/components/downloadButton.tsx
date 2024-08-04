@@ -125,7 +125,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 		<button
 			onClick={handleDownload}
 			disabled={isDownloading}
-			className={`p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center hover:bg-slate-500 leading-none ${isDownloading ? 'opacity-50 cursor-not-allowed' : ''}`}
+			className={`p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center transition-colors hover:bg-slate-500 leading-none ${isDownloading ? 'opacity-50 cursor-not-allowed' : ''}`}
 			title={isShiftPressed ? 'Download current transfer as SVG' : 'Download all transfers as SVG (Hold shift for current)'}
 		>
 			{isDownloading ? (<AiOutlineLoading3Quarters className="animate-spin text-xl" />) : (<IoMdDownload className='text-xl' />)}
