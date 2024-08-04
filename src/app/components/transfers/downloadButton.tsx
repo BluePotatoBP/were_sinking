@@ -1,36 +1,23 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import { InputData, EditableColors } from '@/app/utils/types';
 import { createRoot } from 'react-dom/client';
 import TransferGenerator from '@/app/components/transfers/transferGenerator';
 import { IoMdDownload } from "react-icons/io";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import PackTransfers from '@/app/utils/transferPacker';
+import { TransferRectangle } from '@/app/utils/types';
 
 interface DownloadButtonProps {
 	editableData: InputData[];
-	currentPage: number;
 	font: 'NIKE' | 'PUMA';
 	fontSize: number;
 	colors: EditableColors;
 }
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPage, font, fontSize, colors }) => {
-	const [isShiftPressed, setIsShiftPressed] = useState(false);
+const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fontSize, colors }) => {
 	const [isDownloading, setIsDownloading] = useState(false);
 
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => setIsShiftPressed(e.shiftKey);
-		const handleKeyUp = (e: KeyboardEvent) => setIsShiftPressed(e.shiftKey);
-
-		window.addEventListener('keydown', handleKeyDown);
-		window.addEventListener('keyup', handleKeyUp);
-
-		return () => {
-			window.removeEventListener('keydown', handleKeyDown);
-			window.removeEventListener('keyup', handleKeyUp);
-		};
-	}, []);
-
-	const generateSVG = useCallback((item: InputData): Promise<string> => {
+	const generateSVG = useCallback((item: InputData, index: number): Promise<TransferRectangle> => {
 		return new Promise((resolve) => {
 			const tempDiv = document.createElement('div');
 			document.body.appendChild(tempDiv);
@@ -39,12 +26,13 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 
 			root.render(<TransferGenerator itemData={item} font={font} fontSize={fontSize} colors={colors} forDownload={true} />);
 
-			// Use a MutationObserver to wait for the SVG to be rendered
 			const observer = new MutationObserver(() => {
 				const svgElement = tempDiv.querySelector('svg');
 				if (svgElement) {
 					observer.disconnect();
-					resolve(svgElement.outerHTML);
+					const width = parseFloat(svgElement.getAttribute('width') || '0');
+					const height = parseFloat(svgElement.getAttribute('height') || '0');
+					resolve({ width, height, content: svgElement.outerHTML, id: `transfer-${index}` });
 					root.unmount();
 					document.body.removeChild(tempDiv);
 				}
@@ -54,82 +42,55 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, currentPa
 		});
 	}, [font, fontSize, colors]);
 
-	const arrangeInGrid = useCallback((svgs: string[]): string => {
-		const gridSize = Math.ceil(Math.sqrt(svgs.length));
-		const spacing = 20; // Spacing between SVGs in pixels
-
-		let maxWidth = 0;
-		let maxHeight = 0;
-
-		// Find the maximum dimensions
-		svgs.forEach(svg => {
-			const tempDiv = document.createElement('div');
-			tempDiv.innerHTML = svg;
-			const svgElement = tempDiv.querySelector('svg');
-			if (svgElement) {
-				maxWidth = Math.max(maxWidth, parseFloat(svgElement.getAttribute('width') || '0'));
-				maxHeight = Math.max(maxHeight, parseFloat(svgElement.getAttribute('height') || '0'));
-			}
-		});
-
-		const totalWidth = (maxWidth + spacing) * gridSize;
-		const totalHeight = (maxHeight + spacing) * gridSize;
-
-		let result = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${totalHeight}">`;
-
-		svgs.forEach((svg, index) => {
-			const row = Math.floor(index / gridSize);
-			const col = index % gridSize;
-			const x = col * (maxWidth + spacing);
-			const y = row * (maxHeight + spacing);
-			result += `<g transform="translate(${x},${y})">${svg}</g>`;
-		});
-
-		result += '</svg>';
-		return result;
-	}, []);
-
 	const handleDownload = useCallback(async () => {
 		setIsDownloading(true);
 		try {
-			let svgToDownload: string;
+			const rectangles = await Promise.all(editableData.map(generateSVG));
 
-			if (isShiftPressed) {
-				// Download only the current transfer
-				svgToDownload = await generateSVG(editableData[currentPage]);
-			} else {
-				// Download all transfers
-				const allSVGs = await Promise.all(editableData.map(generateSVG));
-				svgToDownload = arrangeInGrid(allSVGs);
-			}
-			const randomString = window.crypto.randomUUID().substring(0, 4);
-			const blob = new Blob([svgToDownload], { type: 'image/svg+xml' });
-			const url = URL.createObjectURL(blob);
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = isShiftPressed ? `transfer_${currentPage + 1}.svg` : `all_${font}_transfers_${randomString}.svg`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
+			// This is a bit less than 670x470, presumably in points
+			const sheetWidth = 2520;
+			const sheetHeight = 1770;
+
+			const packedSheets = PackTransfers(rectangles, sheetWidth, sheetHeight);
+
+			packedSheets.forEach((sheet, index) => {
+				const svgContent =
+					`
+          				<svg xmlns="http://www.w3.org/2000/svg" width="${sheetWidth}" height="${sheetHeight}">
+            				${sheet.transfers.map(rect => `
+              					<g transform="translate(${rect.x}, ${rect.y})">
+                					${rect.content}
+              					</g>
+            				`).join('')}
+          				</svg>
+        			`;
+
+				const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `packed_sheet_${index + 1}.svg`;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(url);
+			});
 		} catch (error) {
-			console.log(error);
-			setIsDownloading(false);
+			console.error(error);
 		} finally {
 			setIsDownloading(false);
 		}
-
-	}, [isShiftPressed, editableData, currentPage, generateSVG, arrangeInGrid, font]);
+	}, [editableData, generateSVG]);
 
 	return (
 		<button
 			onClick={handleDownload}
 			disabled={isDownloading}
 			className={`p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center transition-colors hover:bg-slate-500 leading-none ${isDownloading ? 'opacity-50 cursor-not-allowed' : ''}`}
-			title={isShiftPressed ? 'Download current transfer as SVG' : 'Download all transfers as SVG (Hold shift for current)'}
+			title='Download packed SVG sheets'
 		>
 			{isDownloading ? (<AiOutlineLoading3Quarters className="animate-spin text-xl" />) : (<IoMdDownload className='text-xl' />)}
-			{isDownloading ? 'Downloading' : (isShiftPressed ? 'Current' : 'All')}
+			{isDownloading ? 'Packing...' : 'Download'}
 		</button>
 	);
 };

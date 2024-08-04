@@ -27,3 +27,21 @@ export type ParsedPageData = {
 		};
 	};
 };
+
+export interface TransferRectangle {
+	width: number;
+	height: number;
+	content: React.ReactNode;
+	id: string;
+}
+
+export interface Sheet {
+	width: number;
+	height: number;
+	transfers: PlacedTransferRectangle[];
+}
+
+interface PlacedTransferRectangle extends TransferRectangle {
+	x: number;
+	y: number;
+}
