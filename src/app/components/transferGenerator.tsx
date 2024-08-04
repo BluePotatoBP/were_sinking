@@ -91,8 +91,8 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 
 			// Create ID text
 			dynamicFont = await opentype.load(font === 'NIKE' ? 'fonts/nike.ttf' : 'fonts/puma.ttf');
-			const spacing = '            ';
-			const verticalSpacing = fontSize * 1.5;
+			const spacing = '        ';
+			const verticalSpacing = fontSize * 1.3;
 			const text = `${idLeftOutside ? idLeftOutside + spacing : ''}${idLeftInside ? idLeftInside + spacing : ''}${idRightOutside ? idRightOutside + spacing : ''}${idRightInside ? idRightInside : ''}`;
 
 			// Add x duplicates and stack below each other
