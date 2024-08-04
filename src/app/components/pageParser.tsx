@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import { useDebounce } from '@/app/utils/hooks';
 import { ParsedPageData } from '@/app/utils/types';
 
-
 interface ParserProps {
 	onParseComplete: (parsedData: ParsedPageData) => void;
 }
@@ -12,7 +11,7 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 
 	const parseText = useCallback((text: string): ParsedPageData => {
 		const patterns = {
-			playerName: /Player([\s\S]*?)Club/,
+			playerName: /Player([\s\S]*?)(Club|Prio)/,
 			clubName: /Club([\s\S]*?)League/,
 			positions: /(LEFT|RIGHT) \((OUTSIDE|INSIDE)\)([\s\S]*?)(?=(LEFT|RIGHT) \((OUTSIDE|INSIDE)\)|$)/g,
 		};
@@ -23,15 +22,12 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 		const positions: ParsedPageData['positions'] = {};
 		let match;
 		while ((match = patterns.positions.exec(text)) !== null) {
-			const [, side, inOut, content] = match;
+			const [side, inOut, content] = match;
 			const key = `${side} ${inOut}`;
-			const idMatch = content.match(/Position 1:\s*ID\s*([\s\S]*?)(?=Position \d+:|$)/);
-			// If needed in the future, also uncomment type in types.ts
-			/* const flagMatch = content.match(/Position 2:\s*Flag\s*([\s\S]*?)(?=Position \d+:|$)/); */
+			const idMatch = content.match(/Position [0-9]:\s*ID\s*([\s\S]*?)(?=Position \d+:|$)/);
 
 			positions[key] = {
 				id: idMatch ? idMatch[1].trim() : ''
-				/* flag: flagMatch ? flagMatch[1].trim() : '', */
 			};
 		}
 
