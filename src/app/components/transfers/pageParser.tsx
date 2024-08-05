@@ -11,9 +11,9 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 
 	const parseText = useCallback((text: string): ParsedPageData => {
 		const patterns = {
-			playerName: /Player([\s\S]*?)(Club|Prio)/,
-			clubName: /Club([\s\S]*?)League/,
-			positions: /(LEFT|RIGHT) \((OUTSIDE|INSIDE)\)([\s\S]*?)(?=(LEFT|RIGHT) \((OUTSIDE|INSIDE)\)|$)/g,
+			playerName: /Player\s*([\s\S]*?)\s*(?=Club|Prio|$)/,
+			clubName: /Club\s*([\s\S]*?)\s*(?=League|$)/,
+			positions: /(LEFT|RIGHT)\s*(?:\((OUTSIDE|INSIDE)\))?\s*([\s\S]*?)(?=(?:LEFT|RIGHT)|$)/g,
 		};
 
 		const playerName = (text.match(patterns.playerName) || [])[1]?.trim() || '';
@@ -22,13 +22,18 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 		const positions: ParsedPageData['positions'] = {};
 		let match;
 		while ((match = patterns.positions.exec(text)) !== null) {
-			const [side, inOut, content] = match;
-			const key = `${side} ${inOut}`;
-			const idMatch = content.match(/Position [0-9]:\s*ID\s*([\s\S]*?)(?=Position \d+:|$)/);
+			const [_, side, inOut, content] = match;
+			const key = `${side} ${inOut || ''}`.toUpperCase().trim();
 
-			positions[key] = {
-				id: idMatch ? idMatch[1].trim() : ''
-			};
+			const idMatches = content.match(/Position \d+:\s*ID\s*([\s\S]*?)(?=Position \d+:|$)/g);
+			if (idMatches) {
+				idMatches.forEach((idMatch, index) => {
+					const id = idMatch.replace(/Position \d+:\s*ID\s*/, '').trim();
+					if (id) {
+						positions[`${key} ${index + 1}`] = { id };
+					}
+				});
+			}
 		}
 
 		return { playerName, clubName, positions };
@@ -42,7 +47,13 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 
 	return (
 		<div className="selection-parser-container flex flex-col gap-4 text-black">
-			<input className="flex p-2 border rounded w-14" ref={inputRef} onChange={(e) => handleInputChange(e.target.value)} placeholder="Fill" title='Paste the entire Shoe order page and automatically populate current transfer.' />
+			<input
+				className="flex p-2 border rounded w-14"
+				ref={inputRef}
+				onChange={(e) => handleInputChange(e.target.value)}
+				placeholder="Fill"
+				title='Paste the entire Shoe order page and automatically populate current transfer.'
+			/>
 		</div>
 	);
 };

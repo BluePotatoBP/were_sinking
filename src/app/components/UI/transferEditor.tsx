@@ -77,21 +77,30 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 		if (onDataUpdate) {
 			onDataUpdate(prevData => {
 				const newData = [...prevData];
-				const updatedItem = { ...newData[currentPage] };
+				const updatedItem: InputData = {
+					...individualTemplate,
+					"Asset Name": "",
+					"Team": "",
+					"ID LEFT OUTSIDE": "",
+					"ID LEFT INSIDE": "",
+					"ID RIGHT OUTSIDE": "",
+					"ID RIGHT INSIDE": "",
+				};
 
 				// Update fields based on parsed data
-				updatedItem["Asset Name"] = parsedData.playerName;
-				updatedItem["Team"] = parsedData.clubName;
+				updatedItem["Asset Name"] = parsedData.playerName || "";
+				updatedItem["Team"] = parsedData.clubName || "";
 
-				// Update IDs
+				// Update IDs with parsed data
 				Object.entries(parsedData.positions).forEach(([position, { id }]) => {
 					const [side, inOut] = position.split(' ');
 					const key = `ID ${side} ${inOut}`;
-					updatedItem[key] = id;
+					if (updatedItem.hasOwnProperty(key)) {
+						updatedItem[key] = id || "";
+					}
 				});
 
 				newData[currentPage] = updatedItem;
-				console.log(newData);
 				return newData;
 			});
 		}
