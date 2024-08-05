@@ -1,5 +1,27 @@
 # Changelog
 
+### v0.6 - Aug 3-5, 2024
+
+```diff
+= Fixed =
++ Parsing page with a priority order now works
++ Only checking for the first Position for the ID (essentially means some IDs would be missing if not manually noticed)
++ The masterfile parser not recognizing numbers
++ Inconsistent button hover changes
++ When creating new transfer, page will go to last + 1 instead of current + 1
+```
+
+= Added / Removed =
+
+```diff
++ Transfer packer
++ Precise page navigation via input field
++ Distinct styling for scrollbar
++ Transitions to hover animations on buttons
+- Replaced default file input with custom component
+- Removed collapse button for table preview
+```
+
 ### v0.5 - Jul 27-28, 2024
 
 ```diff
