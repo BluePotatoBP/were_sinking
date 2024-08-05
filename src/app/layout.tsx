@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import Navbar from '@/app/components/ui/navbar';
-
+import { SettingsProvider } from "@/app/utils/settingsProvider";
 
 export const metadata: Metadata = {
 	title: "Were Sinking",
@@ -13,8 +13,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 	return (
 		<html lang="en">
 			<body>
-				<Navbar />
-				<main>{children}</main>
+				<SettingsProvider>
+					<Navbar />
+					<main>{children}</main>
+				</SettingsProvider>
 			</body>
 		</html>
 	);
