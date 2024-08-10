@@ -170,7 +170,7 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 				</div>
 
 				{/* Transfer preview */}
-				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 rounded-lg lg:min-h-[25vh] lg:max-h-[25vh]">
+				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 rounded-lg lg:min-h-[25vh] lg:w-[50vw]">
 					<Suspense fallback={<div className='text-2xl font-bold'>Loading...</div>}>
 						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={colors} forDownload={false} />
 					</Suspense>

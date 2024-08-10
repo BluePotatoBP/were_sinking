@@ -52,7 +52,7 @@ const FileSelectorButton: React.FC<FileSelectorButtonProps> = ({ onFileSelect })
 
 	return (
 		<div className="select-file-btn">
-			<button className="text-slate-500 font-mono font-black transition-colors hover:text-white" onClick={() => inputRef.current?.click()}>Choose File</button>
+			<button className="text-slate-500 font-mono font-black transition-colors hover:text-white whitespace-nowrap" onClick={() => inputRef.current?.click()}>Choose File</button>
 			<input type="file" id="table-input" ref={inputRef} accept='.xlsx, .xls' onChange={handleFileUpload} className="hidden" />
 		</div>
 	);

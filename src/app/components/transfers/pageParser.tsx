@@ -12,7 +12,7 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 	const parseText = useCallback((text: string): ParsedPageData => {
 		const patterns = {
 			playerName: /Player\s*([\s\S]*?)\s*(?=Club|Prio|$)/,
-			clubName: /Club\s*([\s\S]*?)\s*(?=League|$)/,
+			clubName: /Club\s*([\s\S]*?)\s*(?=League|Delivery|$)/,
 			positions: /(LEFT|RIGHT)\s*(?:\((OUTSIDE|INSIDE)\))?\s*([\s\S]*?)(?=(?:LEFT|RIGHT)|$)/g,
 		};
 
