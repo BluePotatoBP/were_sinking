@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState, memo } from "react";
 import opentype, { Path } from "opentype.js";
-import { InputData, EditableColors } from '@/app/utils/types';
+import { InputData, EditableColors, FontRefs } from '@/app/utils/types';
 import { useDebounce } from '@/app/utils/hooks';
 
 interface TransferGeneratorProps {
 	itemData: InputData;
 	font: 'NIKE' | 'PUMA' | 'CONDENSED';
+	dynamicFontRef: FontRefs;
 	fontSize: number;
 	colors: EditableColors;
 	forDownload: boolean;
 }
 
-const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'NIKE', fontSize = 26, colors, forDownload }) => {
+const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'NIKE', dynamicFontRef, fontSize = 26, colors, forDownload }) => {
 	const [svgContent, setSvgContent] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,10 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 		} = itemData;
 
 		try {
+			if (!dynamicFontRef.condensedFontRef || !dynamicFontRef.nikeFontRef || !dynamicFontRef.pumaFontRef) {
+				throw new Error("Fonts not loaded");
+			}
+
 			const addPathToSVG = (path: Path, start: [number, number], colorCounters: boolean = true) => {
 				const color = colorCounters
 					? (isClockwisePath(path, start) ? colors.counterColor : colors.glyphColor)
@@ -85,12 +90,12 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			};
 
 			// Create identifier text
-			dynamicFont = await opentype.load('fonts/condensed.ttf');
+			dynamicFont = dynamicFontRef.condensedFontRef;
 			const identifierText = `${assetName ? assetName : 'N/A'}${teamName ? " - " + teamName : ''}`;
 			const identifierBBox = await createTextGroup(0, 10, false, identifierText, true);
 
 			// Create ID text
-			dynamicFont = await opentype.load(font === 'NIKE' ? 'fonts/nike.ttf' : 'fonts/puma.ttf');
+			dynamicFont = font === 'NIKE' ? dynamicFontRef.nikeFontRef : dynamicFontRef.pumaFontRef;
 			const spacing = '        ';
 			const verticalSpacing = fontSize * 1.3;
 			const text = `${idLeftOutside ? idLeftOutside + spacing : ''}${idLeftInside ? idLeftInside + spacing : ''}${idRightOutside ? idRightOutside + spacing : ''}${idRightInside ? idRightInside : ''}`;
@@ -137,7 +142,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 		} catch (error) {
 			throw new Error(`${error}`);
 		}
-	}, [itemData, font, fontSize, colors, forDownload]);
+	}, [itemData, font, fontSize, colors, forDownload, dynamicFontRef.condensedFontRef, dynamicFontRef.nikeFontRef, dynamicFontRef.pumaFontRef]);
 
 	const debouncedSetSVGContent = useDebounce((svg: string) => {
 		setSvgContent(svg);

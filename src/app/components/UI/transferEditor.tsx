@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, Suspense, memo } from 'react';
-import { useDebounce } from '@/app/utils/hooks';
+import { useDebounce, useFontLoader } from '@/app/utils/hooks';
 import { InputData, EditableColors, ParsedPageData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
 
@@ -29,6 +29,7 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 		glyphColor: '#ff0000',
 		perforationColor: '#00ff00'
 	});
+	const { fontRefs } = useFontLoader();
 
 	useEffect(() => {
 		setCurrentPage(0);
@@ -170,9 +171,11 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 				</div>
 
 				{/* Transfer preview */}
-				<div className="bg-white flex flex-wrap justify-center gap-[2mm] p-4 rounded-lg lg:min-h-[25vh] lg:w-[50vw]">
-					<Suspense fallback={<div className='text-2xl font-bold'>Loading...</div>}>
-						<TransferGenerator itemData={currentItem} font={font} fontSize={fontSize} colors={colors} forDownload={false} />
+				<div className="bg-white flex flex-wrap justify-center items-center gap-[2mm] p-4 rounded-lg lg:min-h-[15vh] lg:w-[50vw]">
+					<Suspense fallback={<div className='text-2xl text-slate-800 font-bold'>Loading...</div>}>
+						{fontRefs &&
+							<TransferGenerator itemData={currentItem} font={font} dynamicFontRef={fontRefs} fontSize={fontSize} colors={colors} forDownload={false} />
+						}
 					</Suspense>
 				</div>
 

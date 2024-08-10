@@ -1,11 +1,14 @@
 import React, { useCallback, useState } from 'react';
-import { InputData, EditableColors } from '@/app/utils/types';
 import { createRoot } from 'react-dom/client';
+
 import TransferGenerator from '@/app/components/transfers/transferGenerator';
+import PackTransfers from '@/app/utils/transferPacker';
+
+import { InputData, EditableColors, TransferRectangle } from '@/app/utils/types';
+import { useFontLoader } from '@/app/utils/hooks';
+
 import { IoMdDownload } from "react-icons/io";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import PackTransfers from '@/app/utils/transferPacker';
-import { TransferRectangle } from '@/app/utils/types';
 
 interface DownloadButtonProps {
 	editableData: InputData[];
@@ -16,6 +19,7 @@ interface DownloadButtonProps {
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fontSize, colors }) => {
 	const [isDownloading, setIsDownloading] = useState(false);
+	const { fontRefs } = useFontLoader();
 
 	const generateSVG = useCallback((item: InputData, index: number): Promise<TransferRectangle> => {
 		return new Promise((resolve) => {
@@ -24,7 +28,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fon
 
 			const root = createRoot(tempDiv);
 
-			root.render(<TransferGenerator itemData={item} font={font} fontSize={fontSize} colors={colors} forDownload={true} />);
+			if (fontRefs) root.render(<TransferGenerator itemData={item} font={font} dynamicFontRef={fontRefs} fontSize={fontSize} colors={colors} forDownload={true} />);
 
 			const observer = new MutationObserver(() => {
 				const svgElement = tempDiv.querySelector('svg');
@@ -40,7 +44,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fon
 
 			observer.observe(tempDiv, { childList: true, subtree: true });
 		});
-	}, [font, fontSize, colors]);
+	}, [font, fontSize, colors, fontRefs]);
 
 	const handleDownload = useCallback(async () => {
 		setIsDownloading(true);
@@ -90,7 +94,6 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fon
 			title='Download packed SVG sheets'
 		>
 			{isDownloading ? (<AiOutlineLoading3Quarters className="animate-spin text-xl" />) : (<IoMdDownload className='text-xl' />)}
-			{isDownloading ? 'Packing...' : 'Download'}
 		</button>
 	);
 };
