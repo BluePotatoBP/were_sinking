@@ -45,3 +45,9 @@ interface PlacedTransferRectangle extends TransferRectangle {
 	x: number;
 	y: number;
 }
+
+export interface FontRefs {
+	condensedFontRef: opentype.Font;
+	nikeFontRef: opentype.Font;
+	pumaFontRef: opentype.Font;
+}
