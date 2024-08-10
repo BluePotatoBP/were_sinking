@@ -69,11 +69,12 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fon
           				</svg>
         			`;
 
+				const randomString = window.crypto.randomUUID().substring(0, 4);
 				const blob = new Blob([svgContent], { type: 'image/svg+xml' });
 				const url = URL.createObjectURL(blob);
 				const link = document.createElement('a');
 				link.href = url;
-				link.download = `packed_sheet_${index + 1}.svg`;
+				link.download = `packed_sheet_${index + 1}_${randomString}.svg`;
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
