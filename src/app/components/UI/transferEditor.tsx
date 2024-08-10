@@ -29,7 +29,7 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 		glyphColor: '#ff0000',
 		perforationColor: '#00ff00'
 	});
-	const { fontRefs } = useFontLoader();
+	const { fontRefs, error } = useFontLoader();
 
 	useEffect(() => {
 		setCurrentPage(0);
@@ -171,10 +171,21 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 				</div>
 
 				{/* Transfer preview */}
-				<div className="bg-white flex flex-wrap justify-center items-center gap-[2mm] p-4 rounded-lg lg:min-h-[15vh] lg:w-[50vw]">
-					<Suspense fallback={<div className='text-2xl text-slate-800 font-bold'>Loading...</div>}>
+				<div className="bg-white flex flex-wrap justify-center items-center gap-[2mm] p-4 rounded-lg lg:h-[22vh] lg:w-[50vw] overflow-auto">
+					<Suspense fallback={<div className='text-4xl text-slate-500 font-bold tracking-wide'>LOADING</div>}>
 						{fontRefs &&
 							<TransferGenerator itemData={currentItem} font={font} dynamicFontRef={fontRefs} fontSize={fontSize} colors={colors} forDownload={false} />
+						}
+
+						{error &&
+							<div className="error flex flex-col bg-red-500 rounded-lg p-8 justify-center items-left font-sans gap-2">
+								<div className="error-info text-white font-bold text-xl border-l-4 border-red-300 border-solid px-4">
+									Failed to load Font(s)
+								</div>
+								<div className="error-message text-red-700 font-regular bg-red-100 p-4 rounded-lg">
+									{error.message}
+								</div>
+							</div>
 						}
 					</Suspense>
 				</div>

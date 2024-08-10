@@ -140,6 +140,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			return `<svg xmlns="http://www.w3.org/2000/svg" ${forDownload ? `width=${width}` : 'width="100%"'} height="${height}" viewBox="${minX.toFixed(2)} ${minY.toFixed(2)} ${width} ${height}">${allPaths}</svg>`;
 
 		} catch (error) {
+			setError(`${error}`);
 			throw new Error(`${error}`);
 		}
 	}, [itemData, font, fontSize, colors, forDownload, dynamicFontRef.condensedFontRef, dynamicFontRef.nikeFontRef, dynamicFontRef.pumaFontRef]);
