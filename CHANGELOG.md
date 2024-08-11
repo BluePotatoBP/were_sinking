@@ -1,5 +1,25 @@
 # Changelog
 
+### v0.7 - Aug 10-11, 2024
+
+```diff
+= Fixed =
++ Unecessary font loading on every update
++ Puma font ;: characters weren't centered
++ Changed default rectangle color to be machine reset safe (apparently G:255 isn't saved across profile resets)
++ Weekly layout fix that will probably break for no reason
+```
+
+= Added / Removed =
+
+```diff
++ New Settings menu
++ Settings categories
++ Added lines to some tiny glyphs that would usually break off and result in longer transfer cleaning time
++ Sheet files are now labeled by their index + 5 random characters to prevent duplicates
+- Removed "Download" and "Parsing" text from download button
+```
+
 ### v0.6 - Aug 3-5, 2024
 
 ```diff
