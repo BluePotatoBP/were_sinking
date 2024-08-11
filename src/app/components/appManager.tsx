@@ -3,19 +3,22 @@ import XlsxTableParser from "@/app/components/ui/xlsxTableParser";
 import TransferEditor from "@/app/components/ui/transferEditor";
 import FileSelectorButton from "@/app/components/transfers/fileSelectorButton";
 
+import { useSettings } from '@/app/utils/settingsProvider'
 import { InputData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
 import { useCallback, useState, Suspense } from "react";
 
 import { MdFormatLineSpacing } from "react-icons/md";
+import { FaCog } from "react-icons/fa";
 
 const AppManager: React.FC = () => {
-
+	const { settings, toggleMenu } = useSettings();
 	const [isCompact, setIsCompact] = useState<boolean>(false);
 	const [fileData, setFileData] = useState<InputData[]>([]);
 	const [individualTransfers, setIndividualTransfers] = useState<InputData[]>([individualTemplate]);
 	const [currentTab, setCurrentTab] = useState<"INDIVIDUAL" | "MASTERFILE">("INDIVIDUAL");
 
+	const handleSettingsToggle = useCallback(() => toggleMenu("MASTERFILE"), [toggleMenu]);
 	const handleCompactClick = () => setIsCompact(!isCompact);
 	const handleDataUpdate = (newDataOrUpdater: React.SetStateAction<InputData[]>) =>
 		currentTab === "INDIVIDUAL" ? setIndividualTransfers(newDataOrUpdater) : setFileData(newDataOrUpdater);
@@ -59,6 +62,7 @@ const AppManager: React.FC = () => {
 							{fileData && Array.isArray(fileData) ? fileData.length > 0 && (
 								<div className="table-controls flex gap-4">
 									<button onClick={handleCompactClick}><MdFormatLineSpacing className="text-white" /></button>
+									<button onClick={handleSettingsToggle}><FaCog className="text-white" /></button>
 								</div>
 							) : null}
 						</div>
