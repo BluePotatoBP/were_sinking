@@ -48,7 +48,7 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 	return (
 		<div className="selection-parser-container flex flex-col gap-4 text-black">
 			<input
-				className="flex p-2 border rounded w-14"
+				className="flex p-2 border rounded w-[3.75rem] text-center"
 				ref={inputRef}
 				onChange={(e) => handleInputChange(e.target.value)}
 				placeholder="Fill"
