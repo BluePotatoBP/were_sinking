@@ -6,7 +6,7 @@ const Navbar = () => {
 					<img src="/images/logo.svg" width="30px" className="opacity-10" />
 				</div>
 				<div className="version-number">
-					v0.6
+					v0.7
 				</div>
 			</div>
 		</nav>
