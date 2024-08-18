@@ -1,6 +1,6 @@
 {
-  "name": "were_sinking",
-  "version": "0.1.0",
+  "name": "nano",
+  "version": "0.6",
   "private": true,
   "scripts": {
     "dev": "next dev",

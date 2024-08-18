@@ -5,8 +5,7 @@ import Navbar from '@/app/components/ui/navbar';
 import { SettingsProvider } from "@/app/utils/settingsProvider";
 
 export const metadata: Metadata = {
-	title: "Were Sinking",
-	description: "What are you sinking about?",
+	title: "Nano",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
