@@ -1,4 +1,3 @@
-import { useDebounce } from "@/app/utils/hooks";
 import { ChangeEvent, memo, useCallback, useEffect, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
@@ -73,7 +72,7 @@ const PageNavigation: React.FC<PageNavigationProps> = ({ updatePage, pageCount, 
 			</button>
 			{
 				isEditing ? (
-					<input type="text" value={inputValue} onChange={handleInputChange} onBlur={handleInputBlur} onKeyDown={handleSubmit} maxLength={4} className="w-16 p-1 text-center text-slate-200 bg-slate-500 rounded leading-none" autoFocus />
+					<input type="text" value={inputValue} onChange={handleInputChange} onBlur={handleInputBlur} onKeyDown={handleSubmit} maxLength={6} className="w-16 p-1 text-center text-slate-200 bg-slate-500 rounded leading-none" autoFocus />
 				) : (
 					<span onClick={() => setIsEditing(true)} className="cursor-pointer hover:underline" >
 						{currentPage + 1}/{pageCount}

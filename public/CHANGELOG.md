@@ -1,17 +1,30 @@
 # Changelog
 
+### v0.8 - Nov 10, 2024
+
+> Fixed
+```diff
++ Dates being converted to different formats or completely getting lost
++ Header names being case and whitespace sensitive
+```
+
+> Added / Removed
+```diff
++ Changelog page
++ Better formatting for the changelog
+```
+
 ### v0.7 - Aug 10-11, 2024
 
+> Fixed
 ```diff
-= Fixed =
 + Unecessary font loading on every update
 + Puma font ;: characters weren't centered
 + Changed default rectangle color to be machine reset safe (apparently G:255 isn't saved across profile resets)
 + Weekly layout fix that will probably break for no reason
 ```
 
-= Added / Removed =
-
+> Added / Removed
 ```diff
 + New Settings menu
 + Settings categories
@@ -22,8 +35,8 @@
 
 ### v0.6 - Aug 3-5, 2024
 
+> Fixed
 ```diff
-= Fixed =
 + Parsing page with a priority order now works
 + Only checking for the first Position for the ID (essentially means some IDs would be missing if not manually noticed)
 + The masterfile parser not recognizing numbers
@@ -31,8 +44,7 @@
 + When creating new transfer, page will go to last + 1 instead of current + 1
 ```
 
-= Added / Removed =
-
+> Added / Removed
 ```diff
 + Transfer packer
 + Precise page navigation via input field
@@ -44,8 +56,8 @@
 
 ### v0.5 - Jul 27-28, 2024
 
+> Fixed
 ```diff
-= Fixed =
 + Identifier text allowing for undefined values
 + Identifier text dynamically capped between 10-26pt for sake of saving material
 + ID text completely disappearing when the value is ''
@@ -55,8 +67,10 @@
 + Masterfile tab not allowing for text change
 + Masterfile tab not allowing for adding/removing of new transfers
 + Masterfile tab empty fields not showing up
+```
 
-= Added =
+> Added / Removed
+```diff
 + Shoe order page parse and auto populate
 + Settings
 + Downloading indicator for large files
@@ -69,16 +83,18 @@
 
 ### v0.4 - Jul 20-21, 2024
 
+> Fixed
 ```diff
-= Fixed =
 + Preview not scaling properly
 + Collapse button not toggling
 + Optimized letter counters for NIKE font
 + Improved layout consistency
 + Empty rows causing columns to not show up in table preview
 + Page navigation using arrow keys
+```
 
-= Added =
+> Added / Removed
+```diff
 + Font size changes automatically based on font
 + Better error screen for preview
 + Add New button
@@ -91,12 +107,14 @@
 
 ### v0.3 - Jul 13-14, 2024
 
+> Fixed
 ```diff
-= Fixed =
-+ Performance
++ Performance (wow, thanks past me)
 + Layout
+```
 
-= Added =
+> Added / Removed
+```diff
 + Pagination
 + Download button
 ```

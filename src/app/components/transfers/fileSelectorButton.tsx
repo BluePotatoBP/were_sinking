@@ -16,10 +16,38 @@ const FileSelectorButton: React.FC<FileSelectorButtonProps> = ({ onFileSelect })
 			reader.readAsArrayBuffer(input.target.files[0] as Blob);
 			reader.onload = async (loaded) => {
 				const data = loaded.target?.result;
-				const workbook: WorkBook = read(data, { type: 'binary' });
+				const workbook: WorkBook = read(data, {
+					type: 'array',
+					raw: false,
+					dateNF: 'dd/mm/yy',
+					cellText: true,
+					cellDates: false,
+					sheetStubs: true,
+					cellNF: false,
+					cellStyles: false
+				});
+
 				const sheetName = workbook.SheetNames[0];
 				const sheet: WorkSheet = workbook.Sheets[sheetName];
-				const parsedData: InputData[] = utils.sheet_to_json(sheet);
+
+				// Convert date type to string
+				Object.keys(sheet).forEach(cell => {
+					if (sheet[cell] && sheet[cell].t === 'd') {
+						sheet[cell].t = 's';
+					}
+				});
+
+				// Create a header mapping for case-insensitive matching
+				const headerMapping: { [key: string]: string; } = {};
+				Object.keys(individualTemplate).forEach(templateHeader => {
+					headerMapping[templateHeader.toUpperCase().trim()] = templateHeader;
+				});
+
+				const parsedData: InputData[] = utils.sheet_to_json(sheet, {
+					raw: false,
+					defval: "",
+					blankrows: false
+				});
 
 				/**
 				 * Filter data to get rid of emoji and symbols.
@@ -31,17 +59,32 @@ const FileSelectorButton: React.FC<FileSelectorButtonProps> = ({ onFileSelect })
 
 				const filteredData: InputData[] = parsedData.map((item) => {
 					const filteredItem: InputData = {};
-					Object.keys(individualTemplate).forEach((field) => {
-						const value = item[field];
-						if (value !== undefined) {
-							const matchedValue = value.toString().match(regexStr)?.join(' ');
-							if (matchedValue) {
-								filteredItem[field] = isNaN(parseInt(matchedValue)) ? matchedValue : parseInt(matchedValue);
+					// Process each field in the Excel row
+					Object.entries(item).forEach(([excelHeader, value]) => {
+						// Normalize the Excel header
+						const normalizedHeader = excelHeader.toUpperCase().trim();
+						// Find the matching template header
+						const matchingTemplateHeader = headerMapping[normalizedHeader];
+
+						if (matchingTemplateHeader) {
+							// Only process if we found a matching header
+							if (value !== undefined) {
+								const stringValue = String(value).trim();
+								const matchedValue = stringValue.match(regexStr)?.join(' ');
+								filteredItem[matchingTemplateHeader] = matchedValue || "";
+							} else {
+								filteredItem[matchingTemplateHeader] = "";
 							}
-						} else {
-							filteredItem[field] = ""; // Set empty string for missing fields
 						}
 					});
+
+					// Ensure all template fields exist in the filtered item
+					Object.keys(individualTemplate).forEach((field) => {
+						if (!(field in filteredItem)) {
+							filteredItem[field] = "";
+						}
+					});
+
 					return filteredItem;
 				});
 

@@ -51,7 +51,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fon
 		try {
 			const rectangles = await Promise.all(editableData.map(generateSVG));
 
-			// This is a bit less than 670x470, presumably in points
+			// This is a bit less than 670x470mm, presumably in points
 			const sheetWidth = 2520;
 			const sheetHeight = 1770;
 

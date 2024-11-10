@@ -33,7 +33,7 @@ const XlsxTableParser: React.FC<XlsxTableParserProps> = ({ data, isCompact = fal
 								<tr className='divide-x divide-slate-600'>
 									<th className='p-4 text-center text-s font-medium text-white uppercase tracking-wider'>#</th>
 									{allKeys.map((key) => (
-										<th key={key} className='p-3 text-left text-s font-medium text-white uppercase tracking-wider'>{key}</th>
+										<th key={key} className='p-3 text-left text-s font-medium text-white uppercase tracking-wider text-nowrap'>{key}</th>
 									))}
 								</tr>
 							</thead>
