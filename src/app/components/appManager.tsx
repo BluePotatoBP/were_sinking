@@ -11,6 +11,10 @@ import { useCallback, useState, Suspense, useMemo, memo } from "react";
 import { MdFormatLineSpacing } from "react-icons/md";
 import { FaCog } from "react-icons/fa";
 
+const MemoizedFileSelectorButton = memo(FileSelectorButton, (prevProps, nextProps) => {
+	return (prevProps.onFileSelect === nextProps.onFileSelect);
+});
+
 const AppManager: React.FC = () => {
 	const { settings, toggleMenu } = useSettings();
 	const [isCompact, setIsCompact] = useState<boolean>(false);
@@ -35,10 +39,6 @@ const AppManager: React.FC = () => {
 	}, [currentTab, individualTransfers, fileData])
 
 	const fileHint = (currentTab === "MASTERFILE") && (fileData.length <= 0);
-
-	const MemoizedFileSelectorButton = memo(FileSelectorButton, (prevProps, nextProps) => { //onFileSelect={handleFileSelect}
-		return (prevProps.onFileSelect === nextProps.onFileSelect);
-	});
 
 	return (
 		<Suspense>
