@@ -69,7 +69,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fon
           				</svg>
         			`;
 
-				const randomString = window.crypto.randomUUID().substring(0, 4);
+				const randomString = Math.random().toString(20).substring(2, 8);
 				const blob = new Blob([svgContent], { type: 'image/svg+xml' });
 				const url = URL.createObjectURL(blob);
 				const link = document.createElement('a');
