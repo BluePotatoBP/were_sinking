@@ -155,8 +155,8 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 					{/* Colors and font */}
 					<div className="colors-editor flex flex-row md:flex-col gap-4 items-center justify-between dark:bg-slate-700 bg-slate-300 p-4 rounded-lg">
 						<div className="font-buttons flex flex-row md:flex-col gap-4 items-center">
-							<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
-							<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+							<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] rounded-sm cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+							<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] rounded-sm cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
 						</div>
 						<div className="multi-action-buttons flex flex-row md:flex-col gap-4 items-center">
 							<Parser onParseComplete={handleParseCompletion} />

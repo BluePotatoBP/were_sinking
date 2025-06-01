@@ -14,12 +14,6 @@ export const useDebounce = <T extends (...args: any[]) => any>(callback: T, dela
 		callback(...args);
 		timeoutRef.current = null;
 	  }, delay);
-  
-	  return () => {
-		if (timeoutRef.current) {
-		  clearTimeout(timeoutRef.current);
-		}
-	  };
 	}, [callback, delay]);
   };
 
@@ -53,4 +47,9 @@ export function useFontLoader() {
 	}, []);
 
 	return { fontRefs, isLoading, error };
+}
+
+export function getAppVersion() {
+	const packageJson = require('../../../package.json');
+	return packageJson.version || '0.0.0';
 }

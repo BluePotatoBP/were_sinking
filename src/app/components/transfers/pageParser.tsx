@@ -8,12 +8,7 @@ interface ParserProps {
 
 const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 	const inputRef = useRef<HTMLInputElement>(null);
-
-	console.log('Parser component rendering');
-
 	const parseText = useCallback((text: string): ParsedPageData => {
-		console.log('Parsing text:', text);
-
 		const patterns = {
 			playerName: /Player\s*([\s\S]*?)\s*(?=Club|Prio|$)/,
 			clubName: /Club\s*([\s\S]*?)\s*(?=League|Delivery|$)/,
@@ -44,10 +39,8 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 	}, []);
 
 	const handleInputChange = useDebounce((input: string) => {
-		if (input.trim()) {  // Only process non-empty input
-			console.log('Debounced input received:', input);
+		if (input.trim()) {
 			const parsed = parseText(input);
-			console.log('Parsed result:', parsed);
 			onParseComplete(parsed);
 			
 			if (inputRef.current) inputRef.current.value = '';
@@ -59,10 +52,7 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 			<input
 				className="flex p-2 border rounded w-[3.75rem] text-center"
 				ref={inputRef}
-				onChange={(e) => {
-					const cleanup = handleInputChange(e.target.value);
-					return cleanup;
-				  }}
+				onChange={(e) => handleInputChange(e.target.value)}
 				placeholder="Fill"
 				title='Paste the entire Shoe order page and automatically populate current transfer.'
 			/>
