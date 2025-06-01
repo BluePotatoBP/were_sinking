@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import TransferGenerator from '@/app/components/transfers/transferGenerator';
@@ -9,6 +9,9 @@ import { useFontLoader } from '@/app/utils/hooks';
 
 import { IoMdDownload } from "react-icons/io";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+
+const MemoizedIoMdDownload = memo(() => <IoMdDownload className='text-xl' />);
+const MemoizedAiOutlineLoading3Quarters = memo(() => <AiOutlineLoading3Quarters className="animate-spin text-xl" />);
 
 interface DownloadButtonProps {
 	editableData: InputData[];
@@ -94,7 +97,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ editableData, font, fon
 			className={`p-4 dark:bg-slate-600 bg-slate-300 dark:text-white text-slate-600 rounded-lg flex flex-row justify-center gap-2 items-center transition-colors hover:bg-slate-500 leading-none ${isDownloading ? 'opacity-50 cursor-not-allowed' : ''}`}
 			title='Download packed SVG sheets'
 		>
-			{isDownloading ? (<AiOutlineLoading3Quarters className="animate-spin text-xl" />) : (<IoMdDownload className='text-xl' />)}
+			{isDownloading ? (<MemoizedAiOutlineLoading3Quarters />) : (<MemoizedIoMdDownload />)}
 		</button>
 	);
 };

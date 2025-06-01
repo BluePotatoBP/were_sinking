@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useState } from "react";
 import { EditableColors } from '@/app/utils/types';
 import SettingsMenu from "@/app/components/ui/settingsMenu";
 import { useDebounce } from "@/app/utils/hooks";
@@ -54,17 +54,20 @@ export const SettingsProvider: React.FC<{ children: ReactNode; }> = ({ children 
 			separateCountry: true
 		}
 	});
-
 	const [isMenuOpen, setMenuOpen] = useState(false);
 	const [activeCategory, setActiveCategory] = useState<'TRANSFER' | 'MASTERFILE' | null>(null);
-	const debouncedSetSettings = useDebounce(setSettings, 300);
-	const toggleMenu = (category?: 'TRANSFER' | 'MASTERFILE') => {
+	
+	const updateSettings = (value: React.SetStateAction<Settings>) => {
+		setSettings(value);
+	};
+	
+	const toggleMenu = useCallback((category?: 'TRANSFER' | 'MASTERFILE') => {
 		setMenuOpen(!isMenuOpen);
 		setActiveCategory(category || null);
-	};
+	}, [isMenuOpen])
 
 	return (
-		<SettingsContext.Provider value={{ settings, setSettings: debouncedSetSettings, isMenuOpen, toggleMenu }}>
+		<SettingsContext.Provider value={{ settings, setSettings: updateSettings, isMenuOpen, toggleMenu }}>
 			{children}
 			<SettingsMenu isOpen={isMenuOpen} onClose={() => toggleMenu()} activeCategory={activeCategory} />
 		</SettingsContext.Provider>

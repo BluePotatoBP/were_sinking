@@ -6,10 +6,14 @@ import FileSelectorButton from "@/app/components/transfers/fileSelectorButton";
 import { useSettings } from '@/app/utils/settingsProvider'
 import { InputData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
-import { useCallback, useState, Suspense } from "react";
+import { useCallback, useState, Suspense, useMemo, memo } from "react";
 
 import { MdFormatLineSpacing } from "react-icons/md";
 import { FaCog } from "react-icons/fa";
+
+const MemoizedFileSelectorButton = memo(FileSelectorButton, (prevProps, nextProps) => {
+	return (prevProps.onFileSelect === nextProps.onFileSelect);
+});
 
 const AppManager: React.FC = () => {
 	const { settings, toggleMenu } = useSettings();
@@ -20,8 +24,7 @@ const AppManager: React.FC = () => {
 
 	const handleSettingsToggle = useCallback(() => toggleMenu("MASTERFILE"), [toggleMenu]);
 	const handleCompactClick = () => setIsCompact(!isCompact);
-	const handleDataUpdate = (newDataOrUpdater: React.SetStateAction<InputData[]>) =>
-		currentTab === "INDIVIDUAL" ? setIndividualTransfers(newDataOrUpdater) : setFileData(newDataOrUpdater);
+	const handleDataUpdate = useCallback((newDataOrUpdater: React.SetStateAction<InputData[]>) => currentTab === "INDIVIDUAL" ? setIndividualTransfers(newDataOrUpdater) : setFileData(newDataOrUpdater), [currentTab])
 
 	const handleFileSelect = useCallback((data: InputData[]) => {
 		setCurrentTab("MASTERFILE");
@@ -31,7 +34,9 @@ const AppManager: React.FC = () => {
 		}, 0);
 	}, []);
 
-	const currentData = currentTab === "INDIVIDUAL" ? individualTransfers : fileData;
+	const currentData = useMemo(() => {
+		return currentTab === "INDIVIDUAL" ? individualTransfers : fileData;
+	}, [currentTab, individualTransfers, fileData])
 
 	const fileHint = (currentTab === "MASTERFILE") && (fileData.length <= 0);
 
@@ -56,7 +61,7 @@ const AppManager: React.FC = () => {
 				<div className={`right flex flex-col gap-4 w-auto min-w-[7.5rem]`}>
 					<div className="top-container flex flex-row justify-between items-center dark:bg-slate-800 bg-slate-400 p-4 rounded-2xl">
 						<div className={`input-container dark:text-white text-slate-600 ${fileHint ? 'animate-pulse' : ''}`}>
-							<FileSelectorButton onFileSelect={handleFileSelect} />
+							<MemoizedFileSelectorButton onFileSelect={handleFileSelect} />
 						</div>
 						<div className="controls-container p-0 m-0 leading-none">
 							{fileData && Array.isArray(fileData) ? fileData.length > 0 && (

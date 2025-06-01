@@ -4,17 +4,18 @@ import { FontRefs } from "@/app/utils/types";
 
 export const useDebounce = <T extends (...args: any[]) => any>(callback: T, delay: number) => {
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  
 	return useCallback((...args: Parameters<T>) => {
-		if (timeoutRef.current) {
-			clearTimeout(timeoutRef.current);
-		}
-
-		timeoutRef.current = setTimeout(() => {
-			callback(...args);
-		}, delay);
+	  if (timeoutRef.current) {
+		clearTimeout(timeoutRef.current);
+	  }
+  
+	  timeoutRef.current = setTimeout(() => {
+		callback(...args);
+		timeoutRef.current = null;
+	  }, delay);
 	}, [callback, delay]);
-};
+  };
 
 export function useFontLoader() {
 	const [fontRefs, setFontRefs] = useState<FontRefs | null>(null);
@@ -46,4 +47,9 @@ export function useFontLoader() {
 	}, []);
 
 	return { fontRefs, isLoading, error };
+}
+
+export function getAppVersion() {
+	const packageJson = require('../../../package.json');
+	return packageJson.version || '0.0.0';
 }

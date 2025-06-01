@@ -24,6 +24,19 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, activeCate
 
 	if (!isOpen) return null;
 
+	const handleFontSizeChange = (fontType: 'nike' | 'puma', value: number) => {
+		setSettings(prev => ({
+			...prev,
+			transfer: {
+				...prev.transfer,
+				fontSize: {
+					...prev.transfer.fontSize,
+					[fontType]: value
+				}
+			}
+		}));
+	};
+
 	const handleColorChange = (colorType: keyof typeof settings.transfer.colors, value: string) => {
 		setSettings(prev => ({
 			...prev,
@@ -59,39 +72,19 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, activeCate
 							<details className="mb-4">
 								<summary className="cursor-pointer hover:text-slate-400 mb-4">Font Sizes</summary>
 								<div className="flex flex-row justify-between gap-2">
-									<div>
-										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Nike Font Size</label>
+									<div>										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Nike Font Size</label>
 										<input
 											type="number"
 											value={settings.transfer.fontSize.nike}
-											onChange={(e) => setSettings(prev => ({
-												...prev,
-												transfer: {
-													...prev.transfer,
-													fontSize: {
-														...prev.transfer.fontSize,
-														nike: Number(e.target.value)
-													}
-												}
-											}))}
+											onChange={(e) => handleFontSizeChange('nike', Number(e.target.value))}
 											className="p-2 border rounded text-black"
 										/>
 									</div>
-									<div className="mb-2">
-										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Puma Font Size</label>
+									<div className="mb-2">										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Puma Font Size</label>
 										<input
 											type="number"
 											value={settings.transfer.fontSize.puma}
-											onChange={(e) => setSettings(prev => ({
-												...prev,
-												transfer: {
-													...prev.transfer,
-													fontSize: {
-														...prev.transfer.fontSize,
-														puma: Number(e.target.value)
-													}
-												}
-											}))}
+											onChange={(e) => handleFontSizeChange('puma', Number(e.target.value))}
 											className="p-2 border rounded text-black"
 										/>
 									</div>

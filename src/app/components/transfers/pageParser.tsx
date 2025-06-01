@@ -8,7 +8,6 @@ interface ParserProps {
 
 const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 	const inputRef = useRef<HTMLInputElement>(null);
-
 	const parseText = useCallback((text: string): ParsedPageData => {
 		const patterns = {
 			playerName: /Player\s*([\s\S]*?)\s*(?=Club|Prio|$)/,
@@ -40,10 +39,13 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 	}, []);
 
 	const handleInputChange = useDebounce((input: string) => {
-		const parsed = parseText(input);
-		onParseComplete(parsed);
-		if (inputRef.current) inputRef.current.value = '';
-	}, 200);
+		if (input.trim()) {
+			const parsed = parseText(input);
+			onParseComplete(parsed);
+			
+			if (inputRef.current) inputRef.current.value = '';
+		}
+	  }, 200);
 
 	return (
 		<div className="selection-parser-container flex flex-col gap-4 text-black">
@@ -58,4 +60,6 @@ const Parser: React.FC<ParserProps> = ({ onParseComplete }) => {
 	);
 };
 
-export default Parser;
+export default React.memo(Parser, (prevProps, nextProps) => {
+	return prevProps.onParseComplete === nextProps.onParseComplete;
+});

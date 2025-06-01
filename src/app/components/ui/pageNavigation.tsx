@@ -7,6 +7,9 @@ interface PageNavigationProps {
 	currentPage: number;
 }
 
+const MemoizedFaChevronLeft = memo(() => <FaChevronLeft />);
+const MemoizedFaChevronRight = memo(() => <FaChevronRight />);
+
 const PageNavigation: React.FC<PageNavigationProps> = ({ updatePage, pageCount, currentPage }) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [inputValue, setInputValue] = useState<number>(currentPage + 1);
@@ -68,7 +71,7 @@ const PageNavigation: React.FC<PageNavigationProps> = ({ updatePage, pageCount, 
 	return (
 		<div className="navigation-container flex items-center gap-4 dark:text-white text-slate-600">
 			<button onClick={handlePrevPage} disabled={currentPage === 0} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg cursor-pointer hover:bg-slate-500 transition-colors">
-				<FaChevronLeft />
+				<MemoizedFaChevronLeft />
 			</button>
 			{
 				isEditing ? (
@@ -81,7 +84,7 @@ const PageNavigation: React.FC<PageNavigationProps> = ({ updatePage, pageCount, 
 			}
 
 			<button onClick={handleNextPage} disabled={currentPage === pageCount - 1} className="p-2 dark:bg-slate-600 bg-slate-300 rounded-lg cursor-pointer hover:bg-slate-500 transition-colors">
-				<FaChevronRight />
+				<MemoizedFaChevronRight />
 			</button>
 		</div>
 	);
