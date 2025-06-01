@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.8.1 - Jun 1, 2025
+
+> Fixed
+```diff
++ Font size not being editable
+```
+
 ### v0.8 - Nov 10, 2024
 
 > Fixed
