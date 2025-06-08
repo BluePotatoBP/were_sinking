@@ -3,11 +3,11 @@
 import { createContext, ReactNode, useCallback, useContext, useState } from "react";
 import { EditableColors } from '@/app/utils/types';
 import SettingsMenu from "@/app/components/ui/settingsMenu";
-import { useDebounce } from "@/app/utils/hooks";
 
 interface fontSize {
 	nike: number;
 	puma: number;
+	impact: number;
 }
 
 interface transferSettings {
@@ -26,11 +26,13 @@ interface Settings {
 	masterfile: masterfileSettings;
 }
 
+type Category = 'TRANSFER' | 'MASTERFILE';
+
 export interface SettingsContext {
 	settings: Settings;
 	setSettings: React.Dispatch<React.SetStateAction<Settings>>;
 	isMenuOpen: boolean;
-	toggleMenu: (category?: 'TRANSFER' | 'MASTERFILE') => void;
+	toggleMenu: (category?: Category) => void;
 }
 
 const SettingsContext = createContext<SettingsContext | undefined>(undefined);
@@ -40,7 +42,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode; }> = ({ children 
 		transfer: {
 			fontSize: {
 				nike: 26,
-				puma: 32
+				puma: 32,
+				impact: 24
 			},
 			colors: {
 				glyphColor: "#ff0000",
@@ -55,13 +58,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode; }> = ({ children 
 		}
 	});
 	const [isMenuOpen, setMenuOpen] = useState(false);
-	const [activeCategory, setActiveCategory] = useState<'TRANSFER' | 'MASTERFILE' | null>(null);
-	
+	const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+
 	const updateSettings = (value: React.SetStateAction<Settings>) => {
 		setSettings(value);
 	};
-	
-	const toggleMenu = useCallback((category?: 'TRANSFER' | 'MASTERFILE') => {
+
+	const toggleMenu = useCallback((category?: Category) => {
 		setMenuOpen(!isMenuOpen);
 		setActiveCategory(category || null);
 	}, [isMenuOpen])

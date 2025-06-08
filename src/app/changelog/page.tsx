@@ -18,7 +18,7 @@ const Changelog: React.FC = () => {
 	}, []);
 
 	return (
-		<div className="flex flex-col p-8 items-center dark:bg-white/5">
+		<div className="flex flex-col p-8 items-center dark:bg-neutral-800">
 			<div className="flex flex-col justify-center max-w-4xl">
 				<Suspense fallback={<Loading />}>
 					<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css" />

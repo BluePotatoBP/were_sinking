@@ -50,4 +50,7 @@ export interface FontRefs {
 	condensedFontRef: opentype.Font;
 	nikeFontRef: opentype.Font;
 	pumaFontRef: opentype.Font;
+	impactFontRef: opentype.Font;
 }
+
+export type Font = 'nike' | 'puma' | 'condensed' | 'impact';

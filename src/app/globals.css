@@ -10,39 +10,94 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
+  background: linear-gradient(to bottom,
       transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }
 
 ::-webkit-scrollbar {
-	width: 0.5rem;
-	height: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
 }
 
 ::-webkit-scrollbar-track {
-	background: rgba(255, 255, 255, 0.5);
-	border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0.2rem;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: rgba(0, 0, 0, 0.3);
-	border-radius: 0.2rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 0.2rem;
 }
 
 @media (prefers-color-scheme: dark) {
-	:root {
-	  --foreground-rgb: 255, 255, 255;
-	  --background-start-rgb: 0, 0, 0;
-	  --background-end-rgb: 0, 0, 0;
-	}
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
   }
+
+  .markdown-body blockquote {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    margin-bottom: 0px !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+    font-size: large !important;
+    border-top-left-radius: 0.25rem !important;
+    border-top-right-radius: 0.25rem !important;
+    border-left: .25rem solid #9b9d9e !important;
+  }
+
+  .markdown-body h3 {
+    color: rgba(165, 165, 255, 0.9);
+  }
+
+  .markdown-body h1 {
+    color: rgb(115, 115, 255);
+  }
+
+  .markdown-body pre {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    color: white !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-left: .25rem solid #9b9d9e !important;
+  }
+}
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.markdown-body blockquote {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
+  margin-bottom: 0px !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: large;
+  border-top-left-radius: 0.25rem !important;
+  border-top-right-radius: 0.25rem !important;
+  border-left: .25rem solid #808183 !important;
+}
+
+.markdown-body h3 {
+  color: rgba(145, 145, 255, 0.9);
+}
+
+.markdown-body h1 {
+  color: rgb(115, 115, 255);
+}
+
+.markdown-body pre {
+  background-color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.8);
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-left: .25rem solid #808183 !important;
 }

@@ -1,5 +1,18 @@
 # Changelog
 
+### v0.8.2 - Jun 8, 2025
+
+> Added / Removed
+```diff
++ Impact font
+```
+
+> Fixed
+```diff
++ Changelog page styling for both dark and light mode
++ Navbar styling for dark and light mode
+```
+
 ### v0.8.1 - Jun 1, 2025
 
 > Fixed

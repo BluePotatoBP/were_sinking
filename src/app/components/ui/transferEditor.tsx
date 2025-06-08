@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, Suspense, memo, useRef } from 'react';
 import { useDebounce, useFontLoader } from '@/app/utils/hooks';
-import { InputData, ParsedPageData } from '@/app/utils/types';
+import { Font, InputData, ParsedPageData } from '@/app/utils/types';
 import { individualTemplate } from '@/app/utils/misc';
 import { useSettings } from '@/app/utils/settingsProvider';
 
@@ -25,11 +25,22 @@ interface TransferEditorProps {
 
 const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUpdate }) => {
 	const { settings, toggleMenu } = useSettings();
-	const [font, setFont] = useState<'PUMA' | 'NIKE'>('NIKE');
+	const [font, setFont] = useState<Font>('nike');
 	const [currentPage, setCurrentPage] = useState(0);
 	const { fontRefs, error } = useFontLoader();
 
-	const fontSize = font === 'NIKE' ? settings.transfer.fontSize.nike : settings.transfer.fontSize.puma;
+	let fontSize = settings.transfer.fontSize.nike;
+	switch (font) {
+		case 'nike':
+			fontSize = settings.transfer.fontSize.nike
+			break;
+		case 'puma':
+			fontSize = settings.transfer.fontSize.puma
+			break;
+		case 'impact':
+			fontSize = settings.transfer.fontSize.impact;
+			break;
+	}
 	const colors = settings.transfer.colors;
 
 	useEffect(() => {
@@ -41,22 +52,22 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 	const handleInputChange = useCallback((key: string, value: string | number) => {
 		// Immediate update for UI responsiveness
 		const tempUpdate = (prevData: InputData[]) => {
-		  const newData = [...prevData];
-		  newData[currentPage] = { ...newData[currentPage], [key]: value };
-		  return newData;
-		};
-		onDataUpdate(tempUpdate);
-	  
-		// Debounce the final state update to reduce unnecessary re-renders
-		debouncedUpdateData.current(key, value);
-	  }, [currentPage, onDataUpdate]);
-	  
-	const debouncedUpdateData = useRef(
-		useDebounce((key: string, value: string | number) => {
-			onDataUpdate(prevData => {
 			const newData = [...prevData];
 			newData[currentPage] = { ...newData[currentPage], [key]: value };
 			return newData;
+		};
+		onDataUpdate(tempUpdate);
+
+		// Debounce the final state update to reduce unnecessary re-renders
+		debouncedUpdateData.current(key, value);
+	}, [currentPage, onDataUpdate]);
+
+	const debouncedUpdateData = useRef(
+		useDebounce((key: string, value: string | number) => {
+			onDataUpdate(prevData => {
+				const newData = [...prevData];
+				newData[currentPage] = { ...newData[currentPage], [key]: value };
+				return newData;
 			});
 		}, 200)
 	);
@@ -155,8 +166,9 @@ const TransferEditor: React.FC<TransferEditorProps> = ({ data, tabType, onDataUp
 					{/* Colors and font */}
 					<div className="colors-editor flex flex-row md:flex-col gap-4 items-center justify-between dark:bg-slate-700 bg-slate-300 p-4 rounded-lg">
 						<div className="font-buttons flex flex-row md:flex-col gap-4 items-center">
-							<input type="button" value='NIKE' onClick={() => setFont('NIKE')} className={`p-2 w-[3.75rem] rounded-sm cursor-pointer ${font == 'NIKE' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
-							<input type="button" value='PUMA' onClick={() => setFont('PUMA')} className={`p-2 w-[3.75rem] rounded-sm cursor-pointer ${font == 'PUMA' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+							<input type="button" value='nike' onClick={() => setFont('nike')} className={`uppercase text-xs p-2 w-[3.75rem] rounded-sm cursor-pointer ${font == 'nike' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+							<input type="button" value='puma' onClick={() => setFont('puma')} className={`uppercase text-xs p-2 w-[3.75rem] rounded-sm cursor-pointer ${font == 'puma' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
+							<input type="button" value='impact' onClick={() => setFont('impact')} className={`uppercase text-xs p-2 w-[3.75rem] rounded-sm cursor-pointer ${font == 'impact' ? 'text-slate-600 bg-white' : 'dark:text-slate-800 text-slate-300 bg-gray-500'}`} />
 						</div>
 						<div className="multi-action-buttons flex flex-row md:flex-col gap-4 items-center">
 							<Parser onParseComplete={handleParseCompletion} />

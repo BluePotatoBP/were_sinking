@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useSettings } from '@/app/utils/settingsProvider';
+import { type Font } from '@/app/utils/types';
 
 interface SettingsMenuProps {
 	isOpen: boolean;
@@ -24,7 +25,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, activeCate
 
 	if (!isOpen) return null;
 
-	const handleFontSizeChange = (fontType: 'nike' | 'puma', value: number) => {
+	const handleFontSizeChange = (fontType: Font, value: number) => {
 		setSettings(prev => ({
 			...prev,
 			transfer: {
@@ -68,40 +69,31 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, activeCate
 					{/* TRANSFERS */}
 					<details className='text-slate-600 dark:text-slate-200 bg-slate-300 dark:bg-slate-700 rounded-lg' ref={transferRef}>
 						<summary className="cursor-pointer font-semibold hover:text-slate-400 text-center p-4">Transfer Settings</summary>
-						<div className="p-4">
-							<details className="mb-4">
+						<div className="flex flex-col gap-2 p-4">
+							<details className="flex flex-col gap-4">
 								<summary className="cursor-pointer hover:text-slate-400 mb-4">Font Sizes</summary>
-								<div className="flex flex-row justify-between gap-2">
-									<div>										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Nike Font Size</label>
-										<input
-											type="number"
-											value={settings.transfer.fontSize.nike}
-											onChange={(e) => handleFontSizeChange('nike', Number(e.target.value))}
-											className="p-2 border rounded text-black"
-										/>
+								<div className="flex flex-col justify-between gap-2">
+									<div className="flex flex-col gap-2">
+										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Eurostile Font Size</label>
+										<input type="number" value={settings.transfer.fontSize.nike} onChange={(e) => handleFontSizeChange('nike', Number(e.target.value))} className="p-2 border rounded text-black" />
 									</div>
-									<div className="mb-2">										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Puma Font Size</label>
-										<input
-											type="number"
-											value={settings.transfer.fontSize.puma}
-											onChange={(e) => handleFontSizeChange('puma', Number(e.target.value))}
-											className="p-2 border rounded text-black"
-										/>
+									<div className="flex flex-col gap-2">
+										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Puma Font Size</label>
+										<input type="number" value={settings.transfer.fontSize.puma} onChange={(e) => handleFontSizeChange('puma', Number(e.target.value))} className="p-2 border rounded text-black" />
+									</div>
+									<div className="flex flex-col gap-2">
+										<label className="block mb-1 text-slate-700 dark:text-slate-100 font-semibold">Impact Font Size</label>
+										<input type="number" value={settings.transfer.fontSize.impact} onChange={(e) => handleFontSizeChange('impact', Number(e.target.value))} className="p-2 border rounded text-black" />
 									</div>
 								</div>
 							</details>
-							<details className="mb-2">
+							<details className="flex flex-col gap-2">
 								<summary className="cursor-pointer hover:text-slate-400">Colors</summary>
 								<div className="pl-4 mt-2">
 									{Object.entries(settings.transfer.colors).map(([colorType, colorValue]) => (
-										<div key={colorType} className="mb-2">
+										<div key={colorType} className="flex flex-col gap-2">
 											<label className="block mb-1 capitalize font-semibold">{colorType.replace(/([A-Z])/g, ' $1').trim()}</label>
-											<input
-												type="color"
-												value={colorValue}
-												onChange={(e) => handleColorChange(colorType as keyof typeof settings.transfer.colors, e.target.value)}
-												className="w-full p-1 border rounded cursor-pointer"
-											/>
+											<input type="color" value={colorValue} onChange={(e) => handleColorChange(colorType as keyof typeof settings.transfer.colors, e.target.value)} className="w-full p-1 border rounded cursor-pointer" />
 										</div>
 									))}
 								</div>
@@ -115,14 +107,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, activeCate
 							{Object.entries(settings.masterfile).map(([setting, value]) => (
 								<div key={setting} className="flex justify-between">
 									<label htmlFor={setting} className="capitalize">{setting.replace(/([A-Z])/g, ' $1').trim()}</label>
-									<input
-										type="checkbox"
-										id={setting}
-										disabled
-										checked={value}
-										onChange={(e) => handleMasterfileSettingChange(setting as keyof typeof settings.masterfile, e.target.checked)}
-										className="cursor-not-allowed"
-									/>
+									<input type="checkbox" id={setting} disabled checked={value} onChange={(e) => handleMasterfileSettingChange(setting as keyof typeof settings.masterfile, e.target.checked)} className="cursor-not-allowed" />
 								</div>
 							))}
 						</div>

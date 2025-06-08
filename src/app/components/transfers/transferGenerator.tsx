@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState, memo } from "react";
 import opentype, { Path } from "opentype.js";
-import { InputData, EditableColors, FontRefs } from '@/app/utils/types';
+import { InputData, EditableColors, FontRefs, type Font } from '@/app/utils/types';
 import { useDebounce } from '@/app/utils/hooks';
 
 interface TransferGeneratorProps {
 	itemData: InputData;
-	font: 'NIKE' | 'PUMA' | 'CONDENSED';
+	font: Font;
 	dynamicFontRef: FontRefs;
 	fontSize: number;
 	colors: EditableColors;
 	forDownload: boolean;
 }
 
-const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'NIKE', dynamicFontRef, fontSize = 26, colors, forDownload }) => {
+const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 'nike', dynamicFontRef, fontSize = 26, colors, forDownload }) => {
 	const [svgContent, setSvgContent] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
@@ -33,9 +33,10 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 		} = itemData;
 
 		try {
-			if (!dynamicFontRef.condensedFontRef || !dynamicFontRef.nikeFontRef || !dynamicFontRef.pumaFontRef) {
-				throw new Error("Fonts not loaded");
-			}
+			if (!dynamicFontRef.condensedFontRef) throw new Error("Could not load Condensed font.");
+			if (!dynamicFontRef.nikeFontRef) throw new Error("Could not load Eurostile font.");
+			if (!dynamicFontRef.pumaFontRef) throw new Error("Could not load Puma font.");
+			if (!dynamicFontRef.impactFontRef) throw new Error("Could not load Impact font.");
 
 			const addPathToSVG = (path: Path, start: [number, number], colorCounters: boolean = true) => {
 				const color = colorCounters
@@ -92,10 +93,24 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			// Create identifier text
 			dynamicFont = dynamicFontRef.condensedFontRef;
 			const identifierText = `${assetName ? assetName : 'N/A'}${teamName ? " - " + teamName : ''}`;
-			const identifierBBox = await createTextGroup(0, 10, false, identifierText, true);
-
-			// Create ID text
-			dynamicFont = font === 'NIKE' ? dynamicFontRef.nikeFontRef : dynamicFontRef.pumaFontRef;
+			const identifierBBox = await createTextGroup(0, 10, false, identifierText, true);			// Create ID text
+			switch (font.toLowerCase()) {
+				case 'nike':
+					dynamicFont = dynamicFontRef.nikeFontRef;
+					break;
+				case 'puma':
+					dynamicFont = dynamicFontRef.pumaFontRef;
+					break;
+				case 'condensed':
+					dynamicFont = dynamicFontRef.condensedFontRef;
+					break;
+				case 'impact':
+					dynamicFont = dynamicFontRef.impactFontRef;
+					break;
+				default:
+					dynamicFont = dynamicFontRef.condensedFontRef;
+					break;
+			}
 			const spacing = '        ';
 			const verticalSpacing = fontSize * 1.3;
 			const text = `${idLeftOutside ? idLeftOutside + spacing : ''}${idLeftInside ? idLeftInside + spacing : ''}${idRightOutside ? idRightOutside + spacing : ''}${idRightInside ? idRightInside : ''}`;
@@ -143,7 +158,7 @@ const TransferGenerator: React.FC<TransferGeneratorProps> = ({ itemData, font = 
 			setError(`${error}`);
 			throw new Error(`${error}`);
 		}
-	}, [itemData, font, fontSize, colors, forDownload, dynamicFontRef.condensedFontRef, dynamicFontRef.nikeFontRef, dynamicFontRef.pumaFontRef]);
+	}, [itemData, font, fontSize, colors, forDownload, dynamicFontRef.condensedFontRef, dynamicFontRef.nikeFontRef, dynamicFontRef.pumaFontRef, dynamicFontRef.impactFontRef]);
 
 	const debouncedSetSVGContent = useDebounce((svg: string) => {
 		setSvgContent(svg);

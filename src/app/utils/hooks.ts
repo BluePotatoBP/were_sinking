@@ -4,18 +4,18 @@ import { FontRefs } from "@/app/utils/types";
 
 export const useDebounce = <T extends (...args: any[]) => any>(callback: T, delay: number) => {
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
 	return useCallback((...args: Parameters<T>) => {
-	  if (timeoutRef.current) {
-		clearTimeout(timeoutRef.current);
-	  }
-  
-	  timeoutRef.current = setTimeout(() => {
-		callback(...args);
-		timeoutRef.current = null;
-	  }, delay);
+		if (timeoutRef.current) {
+			clearTimeout(timeoutRef.current);
+		}
+
+		timeoutRef.current = setTimeout(() => {
+			callback(...args);
+			timeoutRef.current = null;
+		}, delay);
 	}, [callback, delay]);
-  };
+};
 
 export function useFontLoader() {
 	const [fontRefs, setFontRefs] = useState<FontRefs | null>(null);
@@ -25,16 +25,18 @@ export function useFontLoader() {
 	useEffect(() => {
 		async function loadFonts() {
 			try {
-				const [condensed, nike, puma] = await Promise.all([
+				const [condensed, nike, puma, impact] = await Promise.all([
 					opentype.load('fonts/condensed.ttf'),
 					opentype.load('fonts/nike.ttf'),
 					opentype.load('fonts/puma.ttf'),
+					opentype.load('fonts/impact.ttf'),
 				]);
 
 				setFontRefs({
 					condensedFontRef: condensed,
 					nikeFontRef: nike,
 					pumaFontRef: puma,
+					impactFontRef: impact,
 				});
 			} catch (err) {
 				setError(err instanceof Error ? err : new Error('Failed to load fonts'));

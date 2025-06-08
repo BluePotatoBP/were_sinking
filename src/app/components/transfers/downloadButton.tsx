@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import TransferGenerator from '@/app/components/transfers/transferGenerator';
 import PackTransfers from '@/app/utils/transferPacker';
 
-import { InputData, EditableColors, TransferRectangle } from '@/app/utils/types';
+import { InputData, EditableColors, TransferRectangle, type Font } from '@/app/utils/types';
 import { useFontLoader } from '@/app/utils/hooks';
 
 import { IoMdDownload } from "react-icons/io";
@@ -15,7 +15,7 @@ const MemoizedAiOutlineLoading3Quarters = memo(() => <AiOutlineLoading3Quarters 
 
 interface DownloadButtonProps {
 	editableData: InputData[];
-	font: 'NIKE' | 'PUMA';
+	font: Font;
 	fontSize: number;
 	colors: EditableColors;
 }
